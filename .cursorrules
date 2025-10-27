@@ -1,0 +1,53 @@
+# Cursor Rules for dt4research
+
+## Project Context
+This is a cybernetic control system for digital transformation research (dt4research).
+The project uses FastAPI, Pydantic, and Cytoscape.js for visualization.
+
+## Development Rules
+
+### Virtual Environment
+- Always work in the virtual environment: `venv/`
+- Activate using: `.\venv\Scripts\Activate.ps1` (PowerShell) or `venv\Scripts\activate.bat` (CMD)
+- All Python commands should use the venv Python executable
+
+### Server Startup
+- **ALWAYS use the start script**: `.\start_server.ps1` (PowerShell) or `start_server.bat` (CMD)
+- The start script handles:
+  - Virtual environment activation
+  - Starting the FastAPI server with uvicorn
+  - Proper logging and status messages
+- NEVER run `uvicorn` directly - always use the start scripts
+- PowerShell scripts must set UTF-8 encoding with `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8` for proper Ukrainian text display
+
+### Code Style
+- Write comments in English
+- Use type hints (Pydantic, Python typing)
+- Follow PEP 8
+- Use docstrings for modules, classes, and functions
+- Always use UTF-8 encoding for PowerShell scripts to support Ukrainian characters
+
+### Workflow
+- When user asks to "run/start the server", use the start script from root directory
+- All new features should maintain compatibility with existing models
+- Database is currently in-memory (SQLite-ready for future)
+- We work on Windows with PowerShell terminals; do not use shell operator `&&`
+
+### Project Structure
+- `app/` - Main application code
+- `app/main.py` - FastAPI backend with endpoints
+- `app/models.py` - Pydantic data models
+- `app/agent_logic.py` - Rule-based AI agent
+- `app/templates/` - HTML templates
+- `app/static/` - CSS and JavaScript files
+- `plan/` - Documentation and diagrams
+
+### Key Models
+- 9 Resource Types: Communication, Educational, Financial, Informational, Operational, Organizational, Risk, Strategic, Technological
+- 5 Key Components: Strategy, Structure, Processes, Culture, Resources
+- SystemState: Contains components and resources (in-memory database)
+
+### Response Language
+- Respond in Ukrainian for this project
+- Documentation and code comments should be in English
+

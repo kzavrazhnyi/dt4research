@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dt4research — Кібернетична Модель Цифрової Трансформації</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap&subset=cyrillic" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/cytoscape@3.26.0/dist/cytoscape.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dagre@0.8.5/dist/dagre.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.5.0/cytoscape-dagre.js"></script>
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css" />
+    <script src="https://unpkg.com/tippy.js@6"></script>
+    <script src="https://unpkg.com/cytoscape-popper@2.0.0/cytoscape-popper.js"></script>
+    <script src="/static/app.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>dt4research — Кібернетична Модель Цифрової Трансформації</h1>
+        </header>
+
+        <div class="layout">
+            <aside class="sidebar">
+                <div class="controls" id="controls">
+                    <div class="control-panel">
+                        <label for="goalInput">Стратегічна ціль:</label>
+                        <input type="text" id="goalInput" placeholder="Введіть стратегічну ціль (напр., 'Збільшити екологічну ефективність')" />
+                        <button id="applyButton">Запустити Агента</button>
+                    </div>
+                </div>
+
+                <div class="details">
+                    <h3>Панель деталей</h3>
+                    <div id="detailsContent" class="details-content">
+                        <p>Клікніть на вузол графу, щоб побачити деталі.</p>
+                    </div>
+                </div>
+            </aside>
+
+            <main class="main">
+                <div class="graphs-container">
+                    <div id="cy-graph-main" class="cy-graph"></div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>
+
+
+
