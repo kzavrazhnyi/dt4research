@@ -1,6 +1,6 @@
 """
-FastAPI backend for dt4research cybernetic control system.
-Implements the control loop: Manager Goal → Agent Analysis → State Update → Feedback.
+FastAPI backend for dt4research cybernetic control system (Бекенд FastAPI для кібернетичної системи керування).
+Implements the control loop: Manager Goal → Agent Analysis → State Update → Feedback (Реалізує цикл: Ціль менеджера → Аналіз агента → Оновлення стану → Зворотний зв'язок).
 """
 
 from fastapi import FastAPI
@@ -14,15 +14,15 @@ from app.models import SystemState, KeyComponent, Resource, MechanismInput, Comp
 from app.agent_logic import run_mock_analysis
 
 
-# Initialize FastAPI app
+# Initialize FastAPI app (Ініціалізація застосунку FastAPI)
 app = FastAPI(title="dt4research - Cybernetic Control System", version="0.1.0")
 
-# Templates and static files
+# Templates and static files (Шаблони та статичні файли)
 templates = Jinja2Templates(directory="app/templates")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 
-# Global system state (in-memory database)
+# Global system state (in-memory database) — Глобальний стан системи (in-memory база)
 current_state = SystemState(
     components=[
         KeyComponent(id="comp-strategy", name=ComponentType.STRATEGY, status="Активна"),
@@ -47,21 +47,21 @@ current_state = SystemState(
 
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
-    """Serve the main HTML page."""
+    """Serve the main HTML page (Віддавати головну HTML-сторінку)."""
     return templates.TemplateResponse("index.html", {"request": request})
 
 
 @app.get("/api/v1/system-state")
 async def get_system_state() -> SystemState:
-    """Return current system state."""
+    """Return current system state (Повернути поточний стан системи)."""
     return current_state
 
 
 @app.post("/api/v1/apply-mechanism")
 async def apply_mechanism(input_data: MechanismInput) -> SystemState:
     """
-    Main cybernetic control endpoint.
-    Receives goal from manager, triggers agent analysis, updates system state.
+    Main cybernetic control endpoint (Головний ендпоінт кібернетичного керування).
+    Receives goal from manager, triggers agent analysis, updates system state (Отримує ціль, запускає аналіз агента, оновлює стан).
     """
     global current_state
     

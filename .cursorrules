@@ -21,7 +21,7 @@ The project uses FastAPI, Pydantic, and Cytoscape.js for visualization.
 - PowerShell scripts must set UTF-8 encoding with `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8` for proper Ukrainian text display
 
 ### Code Style
-- Write comments in English
+- Write comments bilingual: English first, with Ukrainian in parentheses (e.g., `Compute delta (Обчислити дельту)`) 
 - Use type hints (Pydantic, Python typing)
 - Follow PEP 8
 - Use docstrings for modules, classes, and functions
@@ -32,6 +32,7 @@ The project uses FastAPI, Pydantic, and Cytoscape.js for visualization.
 - All new features should maintain compatibility with existing models
 - Database is currently in-memory (SQLite-ready for future)
 - We work on Windows with PowerShell terminals; do not use shell operator `&&`
+- Do NOT perform any git commits or pushes without explicit user instruction; always ask for confirmation first
 
 ### Project Structure
 - `app/` - Main application code
