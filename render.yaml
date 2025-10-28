@@ -1,0 +1,28 @@
+# Render Blueprint for dt4research (Конфігурація Render для публікації)
+
+services:
+  - type: web # Web Service (Веб‑сервіс)
+    name: dt4research
+    env: python # Python environment (Середовище Python)
+    plan: free # Instance plan (Тарифний план)
+    region: oregon # Choose closest region (Оберіть найближчий регіон)
+    autoDeploy: true # Auto-deploy on Git push (Автодеплой при пушах)
+
+    # Install dependencies (Встановлення залежностей)
+    buildCommand: pip install -r requirements.txt
+
+    # Start FastAPI via uvicorn; Render provides $PORT (Запуск FastAPI через uvicorn; Render надає $PORT)
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+
+    # Health check endpoint (Ендпоінт перевірки стану)
+    healthCheckPath: /
+
+    # Environment variables (Змінні середовища)
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: "1"
+
+    # Note: On Render Linux containers, Windows-specific start scripts are not used
+    # (Примітка: у Linux‑контейнерах Render Windows‑специфічні скрипти запуску не використовуються)
+
+
