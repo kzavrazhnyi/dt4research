@@ -1,18 +1,27 @@
-# Script to start dt4research server (Скрипт запуску сервера dt4research)
-# Automatically starts FastAPI server using venv Python (Автоматично запускає FastAPI сервер через Python з venv)
+# Script to start dt4research server
+# Automatically starts FastAPI server using venv Python
 
-# Set UTF-8 encoding for proper Ukrainian symbols (Встановлюємо UTF-8 для коректних українських символів)
+# Set UTF-8 encoding for proper Unicode output
+[Console]::InputEncoding  = [System.Text.Encoding]::UTF8
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-$OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding           = [System.Text.Encoding]::UTF8
+$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
 
-Write-Host "🚀 Запуск dt4research..." -ForegroundColor Cyan
-Write-Host "📦 Запускаємо FastAPI сервер через віртуальне середовище..." -ForegroundColor Yellow
-Write-Host "═══════════════════════════════════════" -ForegroundColor Cyan
+# Ensure Python uses UTF-8 for stdio
+$env:PYTHONIOENCODING = 'utf-8'
+$env:PYTHONUTF8 = '1'
 
-# Use Python from virtual environment to run uvicorn (Використати Python з віртуального середовища для uvicorn)
+# Set console code page to UTF-8
+try { chcp 65001 | Out-Null } catch {}
+
+Write-Host "Starting dt4research..." -ForegroundColor Cyan
+Write-Host "Starting FastAPI server via virtual environment..." -ForegroundColor Yellow
+Write-Host "-----------------------------------------------" -ForegroundColor Cyan
+
+# Use Python from virtual environment to run uvicorn
 & .\venv\Scripts\python.exe -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "❌ Помилка запуску сервера" -ForegroundColor Red
+    Write-Host "Помилка запуску сервера" -ForegroundColor Red
     exit 1
 }

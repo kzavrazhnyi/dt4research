@@ -1,131 +1,169 @@
 """
 Rule-based mock AI agent for resource analysis (Правиловий псевдо-АІ агент для аналізу ресурсів).
 Simulates the "Resource Analyst" step in the cybernetic control cycle (Імітує крок "Аналіз ресурсу" у кібернетичному циклі).
+Reads growth coefficients from environment (.env) with sane defaults (Зчитує коефіцієнти зростання з оточення (.env) з типовими значеннями).
 """
 
 import copy
-from app.models import SystemState
+import os
+from typing import Dict, Tuple
+
+from dotenv import load_dotenv
+from app.models import SystemState, ResourceType
 
 
-def run_mock_analysis(goal: str, current_state: SystemState) -> SystemState:
+# Load environment variables (Завантажити змінні оточення)
+load_dotenv()
+
+
+def _get_int_env(name: str, default: int) -> int:
+    """Get integer environment variable with default (Отримати ціле значення змінної оточення з типовим значенням)."""
+    try:
+        return int(os.getenv(name, default))
+    except (TypeError, ValueError):
+        return default
+
+
+# Ecology / Recycling rule coefficients (Коефіцієнти для правила Екології / Переробки)
+ECO_TECH = _get_int_env("RULE_ECO_TECH", 20)
+ECO_EDU = _get_int_env("RULE_ECO_EDU", 15)
+ECO_RISK = _get_int_env("RULE_ECO_RISK", 10)
+
+# Customer / Service focus coefficients (Коефіцієнти для правила Клієнт/Сервіс)
+CUST_COMM = _get_int_env("RULE_CUSTOMER_COMM", 15)
+CUST_INFO = _get_int_env("RULE_CUSTOMER_INFO", 10)
+CUST_OPER = _get_int_env("RULE_CUSTOMER_OPER", 10)
+
+# Innovation / Digital transformation coefficients (Коефіцієнти для Інновацій / ЦТ)
+INNOV_TECH = _get_int_env("RULE_INNOV_TECH", 25)
+INNOV_STRAT = _get_int_env("RULE_INNOV_STRAT", 15)
+INNOV_FIN = _get_int_env("RULE_INNOV_FIN", 10)
+
+# Partnerships / Ecosystem coefficients (Коефіцієнти для Партнерств / Екосистеми)
+PARTNER_ORG = _get_int_env("RULE_PARTNERS_ORG", 20)
+PARTNER_COMM = _get_int_env("RULE_PARTNERS_COMM", 10)
+
+# Risk management / Compliance coefficients (Коефіцієнти для Управління ризиками / Комплаєнсу)
+RISK_RISK = _get_int_env("RULE_RISK_RISK", 20)
+RISK_OPER = _get_int_env("RULE_RISK_OPER", 10)
+
+# Educational / Knowledge coefficients (Коефіцієнти для Освіти / Знань)
+EDU_EDU = _get_int_env("RULE_EDU_EDU", 20)
+EDU_ORG = _get_int_env("RULE_EDU_ORG", 10)
+
+# Default rule coefficients (Типові коефіцієнти)
+DEF_TECH = _get_int_env("RULE_DEFAULT_TECH", 5)
+DEF_STRAT = _get_int_env("RULE_DEFAULT_STRAT", 5)
+DEF_FIN = _get_int_env("RULE_DEFAULT_FIN", 5)
+
+
+def run_mock_analysis(goal: str, current_state: SystemState) -> Tuple[SystemState, Dict[str, int]]:
     """
     Simulate AI agent analysis based on the manager's goal (Симулювати аналіз АІ-агента на основі цілі менеджера).
-    
+
     Args:
         goal: Strategic goal text from the manager (Текст стратегічної цілі менеджера)
         current_state: Current system state (Поточний стан системи)
-        
+
     Returns:
-        Modified system state after agent's recommendations (Модифікований стан після рекомендацій агента)
+        Tuple of (new_state, deltas_by_resource_type) where deltas map resource type label to delta
+        (Кортеж (новий_стан, дельти_за_типом_ресурсу), де дельти — мапа типу ресурсу до зміни)
     """
-    # Create deep copy to avoid mutations (Створити глибоку копію, щоб уникнути мутацій)
     new_state = copy.deepcopy(current_state)
-    
-    # Log agent "thoughts" (Логувати "думки" агента)
+    deltas_by_type: Dict[ResourceType, int] = {}
+
     print(f"\n{'='*60}")
     print(f"🤖 AI Агент аналізує ціль: '{goal}'")
     print(f"{'='*60}")
-    
+
     goal_lower = goal.lower()
-    
-    # Rule 1: Circular economy / recycling (Правило 1: Циркулярна економіка / переробка)
+
+    def apply_deltas(local_deltas: Dict[ResourceType, int], message: str) -> None:
+        """Apply resource deltas and log message (Застосувати дельти ресурсів і залогувати повідомлення)."""
+        nonlocal deltas_by_type
+        deltas_by_type = local_deltas
+        print(message)
+        for r_type, delta in local_deltas.items():
+            for resource in new_state.resources:
+                if resource.type == r_type:
+                    resource.value = min(100, resource.value + delta)
+        human_readable = "; ".join(
+            f"{r_type.value} (+{delta})" for r_type, delta in local_deltas.items()
+        )
+        print(f"✅ Updated resources: {human_readable}")
+
     if "переробк" in goal_lower or "екологі" in goal_lower or "circular" in goal_lower:
         print("📊 Виявлено ключові слова: Переробка, Екологія")
-        print("💡 Рекомендація: Збільшити Технологічний, Освітній, Ризиковий ресурси")
-        
-        for resource in new_state.resources:
-            if resource.type.value == "Технологічний":
-                resource.value = min(100, resource.value + 20)
-            elif resource.type.value == "Освітній":
-                resource.value = min(100, resource.value + 15)
-            elif resource.type.value == "Ризиковий":
-                resource.value = min(100, resource.value + 10)
-        
-        print(f"✅ Оновлено: Технологічний (+20), Освітній (+15), Ризиковий (+10)")
-    
-    # Rule 2: Customer / service focus (Правило 2: Орієнтація на клієнта/сервіс)
+        apply_deltas(
+            {
+                ResourceType.TECHNOLOGICAL: ECO_TECH,
+                ResourceType.EDUCATIONAL: ECO_EDU,
+                ResourceType.RISK: ECO_RISK,
+            },
+            "💡 Recommendation: Increase Technological, Educational, Risk resources (Рекомендація: Збільшити Технологічний, Освітній, Ризиковий ресурси)",
+        )
     elif "клієнт" in goal_lower or "сервіс" in goal_lower or "клієнтськ" in goal_lower:
         print("📊 Виявлено ключові слова: Клієнт, Сервіс")
-        print("💡 Рекомендація: Збільшити Комунікаційний, Інформаційний, Операційний ресурси")
-        
-        for resource in new_state.resources:
-            if resource.type.value == "Комунікаційний":
-                resource.value = min(100, resource.value + 15)
-            elif resource.type.value == "Інформаційний":
-                resource.value = min(100, resource.value + 10)
-            elif resource.type.value == "Операційний":
-                resource.value = min(100, resource.value + 10)
-        
-        print(f"✅ Оновлено: Комунікаційний (+15), Інформаційний (+10), Операційний (+10)")
-    
-    # Rule 3: Innovation / digital transformation (Правило 3: Інновації / цифрова трансформація)
+        apply_deltas(
+            {
+                ResourceType.COMMUNICATION: CUST_COMM,
+                ResourceType.INFORMATIONAL: CUST_INFO,
+                ResourceType.OPERATIONAL: CUST_OPER,
+            },
+            "💡 Recommendation: Increase Communication, Informational, Operational resources (Рекомендація: Збільшити Комунікаційний, Інформаційний, Операційний ресурси)",
+        )
     elif "інновац" in goal_lower or "цифров" in goal_lower or "автоматизац" in goal_lower:
         print("📊 Виявлено ключові слова: Інновація, Цифрова трансформація")
-        print("💡 Рекомендація: Збільшити Технологічний, Стратегічний, Фінансовий ресурси")
-        
-        for resource in new_state.resources:
-            if resource.type.value == "Технологічний":
-                resource.value = min(100, resource.value + 25)
-            elif resource.type.value == "Стратегічний":
-                resource.value = min(100, resource.value + 15)
-            elif resource.type.value == "Фінансовий":
-                resource.value = min(100, resource.value + 10)
-        
-        print(f"✅ Оновлено: Технологічний (+25), Стратегічний (+15), Фінансовий (+10)")
-    
-    # Rule 4: Partnerships / ecosystem (Правило 4: Партнерства / екосистема)
+        apply_deltas(
+            {
+                ResourceType.TECHNOLOGICAL: INNOV_TECH,
+                ResourceType.STRATEGIC: INNOV_STRAT,
+                ResourceType.FINANCIAL: INNOV_FIN,
+            },
+            "💡 Recommendation: Increase Technological, Strategic, Financial resources (Рекомендація: Збільшити Технологічний, Стратегічний, Фінансовий ресурси)",
+        )
     elif "партнер" in goal_lower or "екосистем" in goal_lower or "співпрац" in goal_lower:
         print("📊 Виявлено ключові слова: Партнерство, Екосистема")
-        print("💡 Рекомендація: Збільшити Організаційний, Комунікаційний ресурси")
-        
-        for resource in new_state.resources:
-            if resource.type.value == "Організаційний":
-                resource.value = min(100, resource.value + 20)
-            elif resource.type.value == "Комунікаційний":
-                resource.value = min(100, resource.value + 10)
-        
-        print(f"✅ Оновлено: Організаційний (+20), Комунікаційний (+10)")
-    
-    # Rule 5: Risk management / compliance (Правило 5: Управління ризиками / комплаєнс)
+        apply_deltas(
+            {
+                ResourceType.ORGANIZATIONAL: PARTNER_ORG,
+                ResourceType.COMMUNICATION: PARTNER_COMM,
+            },
+            "💡 Recommendation: Increase Organizational, Communication resources (Рекомендація: Збільшити Організаційний, Комунікаційний ресурси)",
+        )
     elif "ризик" in goal_lower or "безпека" in goal_lower or "комплаєнс" in goal_lower:
         print("📊 Виявлено ключові слова: Ризики, Безпека")
-        print("💡 Рекомендація: Збільшити Ризиковий, Операційний ресурси")
-        
-        for resource in new_state.resources:
-            if resource.type.value == "Ризиковий":
-                resource.value = min(100, resource.value + 20)
-            elif resource.type.value == "Операційний":
-                resource.value = min(100, resource.value + 10)
-        
-        print(f"✅ Оновлено: Ризиковий (+20), Операційний (+10)")
-    
-    # Rule 6: Educational / knowledge (Правило 6: Освіта / знання)
+        apply_deltas(
+            {
+                ResourceType.RISK: RISK_RISK,
+                ResourceType.OPERATIONAL: RISK_OPER,
+            },
+            "💡 Recommendation: Increase Risk and Operational resources (Рекомендація: Збільшити Ризиковий та Операційний ресурси)",
+        )
     elif "освят" in goal_lower or "трен" in goal_lower or "знанн" in goal_lower or "навчан" in goal_lower:
         print("📊 Виявлено ключові слова: Освіта, Тренінги")
-        print("💡 Рекомендація: Збільшити Освітній, Організаційний ресурси")
-        
-        for resource in new_state.resources:
-            if resource.type.value == "Освітній":
-                resource.value = min(100, resource.value + 20)
-            elif resource.type.value == "Організаційний":
-                resource.value = min(100, resource.value + 10)
-        
-        print(f"✅ Оновлено: Освітній (+20), Організаційний (+10)")
-    
-    # Default: general strategy (Типовий випадок: загальна стратегія)
+        apply_deltas(
+            {
+                ResourceType.EDUCATIONAL: EDU_EDU,
+                ResourceType.ORGANIZATIONAL: EDU_ORG,
+            },
+            "💡 Recommendation: Increase Educational and Organizational resources (Рекомендація: Збільшити Освітній та Організаційний ресурси)",
+        )
     else:
         print("📊 Ціль не розпізнано чітко - застосовую базові покращення")
-        print("💡 Рекомендація: Рівномірне підвищення основних ресурсів")
-        
-        for resource in new_state.resources:
-            if resource.type.value in ["Технологічний", "Стратегічний", "Фінансовий"]:
-                resource.value = min(100, resource.value + 5)
-        
-        print(f"✅ Оновлено: Технологічний (+5), Стратегічний (+5), Фінансовий (+5)")
-    
+        apply_deltas(
+            {
+                ResourceType.TECHNOLOGICAL: DEF_TECH,
+                ResourceType.STRATEGIC: DEF_STRAT,
+                ResourceType.FINANCIAL: DEF_FIN,
+            },
+            "💡 Recommendation: Even improvement of core resources (Рекомендація: Рівномірне підвищення основних ресурсів)",
+        )
+
     print(f"{'='*60}\n")
-    
-    return new_state
+
+    deltas_serialized: Dict[str, int] = {r_type.value: delta for r_type, delta in deltas_by_type.items()}
+    return new_state, deltas_serialized
 
 
 

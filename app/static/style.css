@@ -19,16 +19,46 @@ body {
     padding: 20px;
 }
 
-header {
-    text-align: center;
+.page-header {
     margin-bottom: 30px;
     color: white;
 }
 
-header h1 {
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.page-header h1 {
     font-size: 2.2em;
     font-weight: 300;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.language-switch {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 6px 12px;
+    border-radius: 8px;
+}
+
+.language-switch label {
+    color: white;
+    font-weight: 600;
+}
+
+.language-switch select {
+    border: none;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 0.95em;
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
 }
 
 .layout {
@@ -142,7 +172,12 @@ header h1 {
         grid-template-columns: 1fr;
     }
 
-    header h1 {
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .page-header h1 {
         font-size: 1.5em;
     }
     

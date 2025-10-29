@@ -4,30 +4,30 @@ Defines the data structure for the cybernetic control cycle (Визначає с
 """
 
 from enum import Enum
-from typing import List
+from typing import List, Dict, Optional
 from pydantic import BaseModel, Field
 
 
 class ResourceType(str, Enum):
     """Types of resources in the system (Типи ресурсів у системі)."""
-    COMMUNICATION = "Комунікаційний"
-    EDUCATIONAL = "Освітній"
-    FINANCIAL = "Фінансовий"
-    INFORMATIONAL = "Інформаційний"
-    OPERATIONAL = "Операційний"
-    ORGANIZATIONAL = "Організаційний"
-    RISK = "Ризиковий"
-    STRATEGIC = "Стратегічний"
-    TECHNOLOGICAL = "Технологічний"
+    COMMUNICATION = "Communication"
+    EDUCATIONAL = "Educational"
+    FINANCIAL = "Financial"
+    INFORMATIONAL = "Informational"
+    OPERATIONAL = "Operational"
+    ORGANIZATIONAL = "Organizational"
+    RISK = "Risk"
+    STRATEGIC = "Strategic"
+    TECHNOLOGICAL = "Technological"
 
 
 class ComponentType(str, Enum):
     """Types of key components in the system (Типи ключових компонентів системи)."""
-    STRATEGY = "Стратегія"
-    STRUCTURE = "Структура"
-    PROCESSES = "Процеси"
-    CULTURE = "Культура"
-    RESOURCES = "Ресурси"
+    STRATEGY = "Strategy"
+    STRUCTURE = "Structure"
+    PROCESSES = "Processes"
+    CULTURE = "Culture"
+    RESOURCES = "Resources"
 
 
 class Resource(BaseModel):
@@ -53,7 +53,13 @@ class SystemState(BaseModel):
 
 class MechanismInput(BaseModel):
     """Input from manager for the cybernetic control mechanism (Ввід менеджера для кібернетичного механізму)."""
-    target_goal: str = Field(..., description="Strategic goal entered by the manager — Стратегічна ціль, введена менеджером")
+    target_goal: str = Field(..., min_length=3, description="Strategic goal entered by the manager — Стратегічна ціль, введена менеджером")
 
 
+
+class MechanismResponse(BaseModel):
+    """Response for apply-mechanism endpoint (Відповідь ендпоінта застосування механізму)."""
+    newState: SystemState
+    explanation: str
+    explanation_details: Optional[Dict[str, int]] = None
 

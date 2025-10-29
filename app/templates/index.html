@@ -17,24 +17,33 @@
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>dt4research — Кібернетична Модель Цифрової Трансформації</h1>
+        <header class="page-header">
+            <div class="header-content">
+                <h1 id="headerTitle">dt4research — Cybernetic Model of Digital Transformation</h1>
+                <div class="language-switch">
+                    <label for="languageSelect" id="languageLabel">Language:</label>
+                    <select id="languageSelect" aria-label="Language selector">
+                        <option value="en">English</option>
+                        <option value="uk">Українська</option>
+                    </select>
+                </div>
+            </div>
         </header>
 
         <div class="layout">
             <aside class="sidebar">
                 <div class="controls" id="controls">
                     <div class="control-panel">
-                        <label for="goalInput">Стратегічна ціль:</label>
-                        <input type="text" id="goalInput" placeholder="Введіть стратегічну ціль (напр., 'Збільшити екологічну ефективність')" />
-                        <button id="applyButton">Запустити Агента</button>
+                        <label for="goalInput" id="goalLabel">Strategic goal:</label>
+                        <input type="text" id="goalInput" placeholder="Enter strategic goal (e.g., 'Increase ecological efficiency')" />
+                        <button id="applyButton">Run Agent</button>
                     </div>
                 </div>
 
                 <div class="details">
-                    <h3>Панель деталей</h3>
+                    <h3 id="detailsTitle">Details Panel</h3>
                     <div id="detailsContent" class="details-content">
-                        <p>Клікніть на вузол графу, щоб побачити деталі.</p>
+                        <p id="detailsPlaceholder">Click a graph node to see details.</p>
                     </div>
                 </div>
             </aside>
