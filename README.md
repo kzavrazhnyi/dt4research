@@ -65,8 +65,38 @@ Manager Goal → Agent Analysis → State Update → Feedback Loop
 - **Key components (5):** Strategy, Structure, Processes, Culture, Resources
 
 ### Planning Snapshot
-- Current baseline: 1.0.0.2 (UI/UX enhancements)
-- Upcoming stages: 1.0.0.3 “Robust Backend”, 1.0.0.4 “Persistence” (`plan/` directory)
+- Completed: 1.0.0.3 “Robust Backend”
+  - Input validation (`min_length` on mechanism input)
+  - Environment-based coefficients via `.env` (defaults applied if missing)
+  - API response returns `newState`, `explanation`, `explanation_details`
+  - CORS enabled; standardized logging (console or JSON via `LOG_FORMAT`)
+  - Test suite with `pytest` (3 tests) running under `venv`
+  - Bilingual UI with runtime language toggle
+- Previous baseline: 1.0.0.2 (UI/UX enhancements)
+- Next stage: 1.0.0.4 “Persistence” (`plan/` directory)
+
+### Configuration (.env)
+Supported environment variables (optional; sensible defaults are used):
+- `LOG_FORMAT` = `console` | `json`
+- `LOG_LEVEL` = `INFO` (typical values: DEBUG, INFO, WARNING, ERROR)
+- Rule coefficients (example defaults in parentheses):
+  - `RULE_ECO_TECH` (20), `RULE_ECO_EDU` (15), `RULE_ECO_RISK` (10)
+  - `RULE_CUSTOMER_COMM` (15), `RULE_CUSTOMER_INFO` (10), `RULE_CUSTOMER_OPER` (10)
+  - `RULE_INNOV_TECH` (25), `RULE_INNOV_STRAT` (15), `RULE_INNOV_FIN` (10)
+  - `RULE_PARTNERS_ORG` (20), `RULE_PARTNERS_COMM` (10)
+  - `RULE_RISK_RISK` (20), `RULE_RISK_OPER` (10)
+  - `RULE_EDU_EDU` (20), `RULE_EDU_ORG` (10)
+  - `RULE_DEFAULT_TECH` (5), `RULE_DEFAULT_STRAT` (5), `RULE_DEFAULT_FIN` (5)
+
+### Internationalization
+- English is the default UI language; Ukrainian can be selected from the page header.
+- Graph node labels, details panel, tooltips and controls update instantly on language change.
+
+### Testing
+Run tests from `venv`:
+```powershell
+./venv/Scripts/python.exe -m pytest -q
+```
 
 ### Technology Stack
 - Backend: FastAPI, Uvicorn, Pydantic
@@ -142,8 +172,38 @@ dt4research/
 - **Ключові компоненти (5):** Стратегія, Структура, Процеси, Культура, Ресурси
 
 ### План розвитку
-- Актуальна база: 1.0.0.2 (покращення UI/UX)
-- Наступні етапи: 1.0.0.3 «Надійний бекенд», 1.0.0.4 «Персистентність» (`plan/`)
+- Виконано: 1.0.0.3 «Надійний бекенд»
+  - Валідація вводу (`min_length` для цілі механізму)
+  - Коефіцієнти з `.env` (із дефолтами за відсутності файлу)
+  - Відповідь API містить `newState`, `explanation`, `explanation_details`
+  - Увімкнено CORS; стандартизоване логування (`LOG_FORMAT=console|json`)
+  - Набір тестів `pytest` (3 тести) у `venv`
+  - Двомовний UI з перемикачем мови
+- Попередня база: 1.0.0.2 (поліпшення UI/UX)
+- Наступний етап: 1.0.0.4 «Персистентність» (`plan/`)
+
+### Налаштування (.env)
+Підтримувані змінні середовища (опційно; є адекватні значення за замовчуванням):
+- `LOG_FORMAT` = `console` | `json`
+- `LOG_LEVEL` = `INFO` (типові: DEBUG, INFO, WARNING, ERROR)
+- Коефіцієнти правил (типові значення в дужках):
+  - `RULE_ECO_TECH` (20), `RULE_ECO_EDU` (15), `RULE_ECO_RISK` (10)
+  - `RULE_CUSTOMER_COMM` (15), `RULE_CUSTOMER_INFO` (10), `RULE_CUSTOMER_OPER` (10)
+  - `RULE_INNOV_TECH` (25), `RULE_INNOV_STRAT` (15), `RULE_INNOV_FIN` (10)
+  - `RULE_PARTNERS_ORG` (20), `RULE_PARTNERS_COMM` (10)
+  - `RULE_RISK_RISK` (20), `RULE_RISK_OPER` (10)
+  - `RULE_EDU_EDU` (20), `RULE_EDU_ORG` (10)
+  - `RULE_DEFAULT_TECH` (5), `RULE_DEFAULT_STRAT` (5), `RULE_DEFAULT_FIN` (5)
+
+### Локалізація
+- Англійська — основна мова інтерфейсу; українська обирається у шапці сторінки.
+- Підписи вузлів графа, панель деталей, тултіпи та елементи керування оновлюються миттєво при зміні мови.
+
+### Тестування
+Запуск тестів із `venv`:
+```powershell
+./venv/Scripts/python.exe -m pytest -q
+```
 
 ### Технології
 - Бекенд: FastAPI, Uvicorn, Pydantic
