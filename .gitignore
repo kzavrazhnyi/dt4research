@@ -6,4 +6,7 @@ __pycache__/
 *.log
 
 
+# Project archives (виключити архіви планів)
+plan/archive/
+
 
