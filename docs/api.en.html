@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API — dt4research v1.0.0.4</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body{background:#f8f9fa}
+    .doc-header{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:48px 0;margin-bottom:24px}
+    .card-doc{border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.08)}
+    .api-endpoint{background:#eef1f7;padding:6px 10px;border-radius:6px;font-family:"Courier New",monospace}
+  </style>
+</head>
+<body>
+<nav class="navbar navbar-light bg-white shadow-sm"><div class="container"><a class="navbar-brand" href="/"><i class="fas fa-brain me-2"></i>dt4research</a></div></nav>
+<header class="doc-header text-center"><div class="container"><h1 class="h2 mb-2"><i class="fas fa-book me-2"></i>API Reference</h1><p class="mb-0">v1.0.0.4</p></div></header>
+<main class="container">
+  <section class="card card-doc mb-3"><div class="card-body">
+    <h5 class="card-title"><i class="fas fa-plug text-primary me-2"></i>Endpoints</h5>
+    <div class="api-endpoint">GET / — web UI</div>
+    <div class="api-endpoint">GET /api/v1/system-state — current state</div>
+    <div class="api-endpoint">POST /api/v1/apply-mechanism — run agent, persist state and history</div>
+    <div class="api-endpoint">GET /api/v1/agent-runs?limit=20&offset=0 — runs history</div>
+  </div></section>
+
+  <section class="card card-doc mb-3"><div class="card-body">
+    <h5 class="card-title"><i class="fas fa-database text-warning me-2"></i>Models (Pydantic)</h5>
+    <p class="mb-1"><strong>MechanismInput</strong></p>
+    <pre class="api-endpoint mb-2">{ "target_goal": "string (min 3)" }</pre>
+    <p class="mb-1"><strong>MechanismResponse</strong></p>
+    <pre class="api-endpoint mb-2">{
+  "newState": { /* SystemState */ },
+  "explanation": "string",
+  "explanation_details": { "ResourceType": number }
+}</pre>
+    <p class="mb-1"><strong>SystemState</strong></p>
+    <pre class="api-endpoint mb-0">{
+  "components": [{ "id": "string", "name": "string", "status": "string" }],
+  "resources": [{ "id": "string", "name": "string", "type": "ResourceType", "value": 0.0 }]
+}</pre>
+  </div></section>
+
+  <section class="card card-doc mb-4"><div class="card-body">
+    <h5 class="card-title"><i class="fas fa-gear text-success me-2"></i>Notes</h5>
+    <ul class="mb-0">
+      <li>Logging: <code>LOG_FORMAT=console|json</code></li>
+      <li>Rule coefficients via <code>.env</code> (safe defaults)</li>
+    </ul>
+  </div></section>
+</main>
+</body>
+</html>
+
+
+

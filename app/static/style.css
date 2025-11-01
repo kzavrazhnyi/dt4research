@@ -32,6 +32,12 @@ body {
     flex-wrap: wrap;
 }
 
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
 .page-header h1 {
     font-size: 2.2em;
     font-weight: 300;
@@ -59,6 +65,25 @@ body {
     font-size: 0.95em;
     background: rgba(255, 255, 255, 0.9);
     color: #333;
+}
+
+.doc-links {
+    display: flex;
+    gap: 8px;
+}
+
+.link-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background: #ffffff;
+    color: #333;
+    font-weight: 600;
+}
+
+.link-btn:hover {
+    background: #f0f0f0;
 }
 
 .layout {

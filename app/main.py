@@ -16,6 +16,9 @@ import uvicorn
 
 from app.models import SystemState, KeyComponent, Resource, MechanismInput, ComponentType, ResourceType, MechanismResponse
 from app.agent_logic import run_mock_analysis
+from app.db import create_db_and_tables
+from app.repository import read_system_state, write_system_state, seed_initial_state, add_agent_run
+from app.initial_state import INITIAL_STATE
 
 
 # Initialize FastAPI app (Ініціалізація застосунку FastAPI)
@@ -65,29 +68,19 @@ _configure_logging()
 # Templates and static files (Шаблони та статичні файли)
 templates = Jinja2Templates(directory="app/templates")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
+app.mount("/docs", StaticFiles(directory="docs"), name="docs")
+app.mount("/plan", StaticFiles(directory="plan"), name="plan")
 
 
-# Global system state (in-memory database) — Глобальний стан системи (in-memory база)
-current_state = SystemState(
-    components=[
-        KeyComponent(id="comp-strategy", name=ComponentType.STRATEGY, status="Active"),
-        KeyComponent(id="comp-structure", name=ComponentType.STRUCTURE, status="Stable"),
-        KeyComponent(id="comp-processes", name=ComponentType.PROCESSES, status="In Progress"),
-        KeyComponent(id="comp-culture", name=ComponentType.CULTURE, status="Healthy"),
-        KeyComponent(id="comp-resources", name=ComponentType.RESOURCES, status="Available"),
-    ],
-    resources=[
-        Resource(id="res-comm", name="Communication Channels", type=ResourceType.COMMUNICATION, value=65.0),
-        Resource(id="res-edu", name="Learning Programs", type=ResourceType.EDUCATIONAL, value=55.0),
-        Resource(id="res-fin", name="Capital and Investments", type=ResourceType.FINANCIAL, value=70.0),
-        Resource(id="res-info", name="Information Systems", type=ResourceType.INFORMATIONAL, value=60.0),
-        Resource(id="res-oper", name="Operational Processes", type=ResourceType.OPERATIONAL, value=75.0),
-        Resource(id="res-org", name="Organizational Structure", type=ResourceType.ORGANIZATIONAL, value=65.0),
-        Resource(id="res-risk", name="Risk Management", type=ResourceType.RISK, value=50.0),
-        Resource(id="res-strat", name="Strategic Planning", type=ResourceType.STRATEGIC, value=68.0),
-        Resource(id="res-tech", name="Technology Solutions", type=ResourceType.TECHNOLOGICAL, value=62.0),
-    ]
-)
+# Initial state used for seeding the database (Початковий стан для заповнення БД)
+_initial_state = INITIAL_STATE
+
+
+@app.on_event("startup")
+def _startup_seed() -> None:
+    """Create tables and seed initial data if needed (Створити таблиці та початкові дані)."""
+    create_db_and_tables()
+    seed_initial_state(_initial_state)
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -99,7 +92,7 @@ async def root(request: Request):
 @app.get("/api/v1/system-state")
 async def get_system_state() -> SystemState:
     """Return current system state (Повернути поточний стан системи)."""
-    return current_state
+    return read_system_state()
 
 
 @app.post("/api/v1/apply-mechanism")
@@ -108,16 +101,15 @@ async def apply_mechanism(input_data: MechanismInput) -> MechanismResponse:
     Main cybernetic control endpoint (Головний ендпоінт кібернетичного керування).
     Receives goal from manager, triggers agent analysis, updates system state (Отримує ціль, запускає аналіз агента, оновлює стан).
     """
-    global current_state
-    
     # Step 1: Get input
     goal = input_data.target_goal
-    
-    # Step 2: Run agent analysis
+
+    # Step 2: Read current state from DB and run agent analysis
+    current_state = read_system_state()
     new_state, deltas = run_mock_analysis(goal, current_state)
-    
-    # Step 3: Update global state (simulate updating Memory from ai_agent_runtime.png)
-    current_state = new_state
+
+    # Step 3: Persist new state and the run history
+    write_system_state(new_state)
 
     # Build explanation string (Сформувати текст пояснення)
     if deltas:
@@ -126,7 +118,31 @@ async def apply_mechanism(input_data: MechanismInput) -> MechanismResponse:
     else:
         explanation = "Без змін"
 
-    return MechanismResponse(newState=current_state, explanation=explanation, explanation_details=deltas)
+    # Store agent run (Зберегти запуск агента)
+    try:
+        add_agent_run(goal, deltas, new_state)
+    except Exception as exc:  # pragma: no cover
+        logging.getLogger(__name__).warning("Failed to store agent run: %s", exc)
+
+    return MechanismResponse(newState=new_state, explanation=explanation, explanation_details=deltas)
+
+
+@app.get("/api/v1/agent-runs")
+async def get_agent_runs(limit: int = 20, offset: int = 0):
+    """Return paginated agent run history (Повернути історію запусків із пагінацією)."""
+    from app.repository import list_agent_runs  # local import to avoid circular
+
+    total, runs = list_agent_runs(limit=limit, offset=offset)
+    items = [
+        {
+            "id": r.id,
+            "timestamp": r.timestamp.isoformat() + "Z",
+            "input_goal": r.input_goal,
+            "applied_rules_explanation": json.loads(r.applied_rules_explanation),
+        }
+        for r in runs
+    ]
+    return {"total": total, "items": items, "limit": limit, "offset": offset}
 
 
 if __name__ == "__main__":

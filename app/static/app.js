@@ -11,6 +11,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const headerTitle = document.getElementById('headerTitle');
     const languageLabel = document.getElementById('languageLabel');
     const languageSelect = document.getElementById('languageSelect');
+    const btnTechPlan = document.getElementById('btnTechPlan');
+    const btnApiRef = document.getElementById('btnApiRef');
 
     const logUI = (...args) => console.log('[UI]', ...args);
 
@@ -27,6 +29,8 @@ document.addEventListener('DOMContentLoaded', function() {
             tooltipValue: 'Value:',
             applyButtonIdle: 'Run Agent',
             applyButtonLoading: 'Analyzing...',
+            techPlanBtn: 'Tech Plan',
+            apiBtn: 'API',
             alertEmptyGoal: 'Please enter a strategic goal!',
             alertRequestError: 'Error processing request',
             alertNetworkError: 'Server communication error',
@@ -69,6 +73,8 @@ document.addEventListener('DOMContentLoaded', function() {
             tooltipValue: 'Значення:',
             applyButtonIdle: 'Запустити агента',
             applyButtonLoading: 'Аналізує...',
+            techPlanBtn: 'Технічний план',
+            apiBtn: 'API',
             alertEmptyGoal: 'Будь ласка, введіть стратегічну ціль!',
             alertRequestError: 'Помилка при обробці запиту',
             alertNetworkError: 'Помилка зв\'язку з сервером',
@@ -228,6 +234,8 @@ document.addEventListener('DOMContentLoaded', function() {
         goalInput.placeholder = locale.goalPlaceholder;
         detailsTitle.textContent = locale.detailsTitle;
         languageSelect.value = currentLanguage;
+        if (btnTechPlan) btnTechPlan.textContent = locale.techPlanBtn;
+        if (btnApiRef) btnApiRef.textContent = locale.apiBtn;
 
         const selectedData = getSelectedNodeData();
         if (!selectedData) {
@@ -435,6 +443,24 @@ document.addEventListener('DOMContentLoaded', function() {
         applyTranslationsToGraph();
         logUI('Interface ready');
     })();
+
+    // Doc links
+    if (btnTechPlan) {
+        btnTechPlan.addEventListener('click', () => {
+            const path = currentLanguage === 'uk'
+                ? '/docs/plan.uk.html'
+                : '/docs/plan.en.html';
+            window.open(path, '_blank');
+        });
+    }
+    if (btnApiRef) {
+        btnApiRef.addEventListener('click', () => {
+            const path = currentLanguage === 'uk'
+                ? '/docs/api.uk.html'
+                : '/docs/api.en.html';
+            window.open(path, '_blank');
+        });
+    }
 });
 
 

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Technical Plan — dt4research v1.0.0.4</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <style>
+        body{background:#f8f9fa}
+        .doc-header{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:48px 0;margin-bottom:24px}
+        .card-doc{border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.08)}
+        .api-endpoint{background:#eef1f7;padding:6px 10px;border-radius:6px;font-family:"Courier New",monospace}
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-light bg-white shadow-sm"><div class="container"><a class="navbar-brand" href="/"><i class="fas fa-brain me-2"></i>dt4research</a></div></nav>
+<header class="doc-header text-center">
+    <div class="container">
+        <h1 class="h2 mb-2"><i class="fas fa-screwdriver-wrench me-2"></i>Technical Plan (v1.0.0.4)</h1>
+        <p class="mb-0">Stage 3 — Persistence (SQLite + SQLModel)</p>
+    </div>
+</header>
+<main class="container">
+    <section class="card card-doc mb-3"><div class="card-body">
+        <h5 class="card-title"><i class="fas fa-circle-info text-primary me-2"></i>Overview</h5>
+        <p class="mb-2">FastAPI + Pydantic backend; rule-based agent with <code>.env</code> coefficients; persistence via SQLite/SQLModel (PostgreSQL-ready); bilingual UI (EN/UA).</p>
+        <div class="row g-3">
+            <div class="col-md-6"><div class="p-3 bg-light rounded h-100">
+                <strong>Stack</strong>
+                <ul class="mb-0">
+                    <li>FastAPI, Uvicorn, Pydantic</li>
+                    <li>SQLModel (SQLAlchemy 2), SQLite</li>
+                    <li>Cytoscape.js, Tippy.js</li>
+                    <li>python-dotenv, Pytest</li>
+                </ul>
+            </div></div>
+            <div class="col-md-6"><div class="p-3 bg-light rounded h-100">
+                <strong>Configuration</strong>
+                <ul class="mb-0">
+                    <li><code>LOG_FORMAT</code>: console|json</li>
+                    <li><code>LOG_LEVEL</code>: INFO (default)</li>
+                    <li>RULE_* coefficients for agent rules</li>
+                </ul>
+            </div></div>
+        </div>
+    </div></section>
+
+    <section class="card card-doc mb-3"><div class="card-body">
+        <h5 class="card-title"><i class="fas fa-diagram-project text-success me-2"></i>Cybernetic Loop</h5>
+        <div class="mermaid">
+flowchart TD
+  A[UI] -->|POST /apply| B[API]
+  B --> C[Agent]
+  B --> D[Repository]
+  D --> E[(SQLite)]
+  C --> B
+  B --> A
+        </div>
+        <div class="row g-3 mt-2">
+            <div class="col-md-6"><img class="img-fluid rounded" src="../plan/ai_agent_runtime.png" alt="runtime"></div>
+            <div class="col-md-6"><img class="img-fluid rounded" src="../plan/dt_model_final_english.png" alt="dt model"></div>
+        </div>
+    </div></section>
+
+    <section class="card card-doc mb-3"><div class="card-body">
+        <h5 class="card-title"><i class="fas fa-database text-warning me-2"></i>Data Model</h5>
+        <div class="mermaid">
+erDiagram
+  ComponentRow {
+    string id
+    string name
+    string status
+  }
+  ResourceRow {
+    string id
+    string name
+    string type
+    float value
+  }
+  AgentRunRow {
+    int id
+    datetime timestamp
+    string input_goal
+    string applied_rules_explanation
+    string snapshot_state
+  }
+        </div>
+    </div></section>
+
+    <section class="card card-doc mb-4"><div class="card-body">
+        <h5 class="card-title"><i class="fas fa-check text-success me-2"></i>Delivered in 1.0.0.4</h5>
+        <ul class="mb-2">
+            <li>Durable state across restarts; repository for read/write</li>
+            <li>Agent run history with pagination</li>
+            <li>Persistence tests (Pytest)</li>
+        </ul>
+        <div class="small text-muted">Next: Alembic migrations; detailed history endpoint; restricted CORS for prod.</div>
+    </div></section>
+</main>
+<script>
+  mermaid.initialize({ startOnLoad: true, securityLevel: 'loose' });
+</script>
+</body>
+</html>
