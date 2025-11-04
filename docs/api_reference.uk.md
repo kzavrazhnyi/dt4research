@@ -1,4 +1,4 @@
-# dt4research — Довідник API (v1.0.0.4)
+# dt4research — Довідник API (v1.1.0)
 
 Базовий URL: `http://127.0.0.1:8000`
 
@@ -55,6 +55,18 @@ Content-Type: `application/json`
     "input_goal": "Покращити сервіс для клієнтів",
     "applied_rules_explanation": {"Communication": 15}
   }]
+}
+```
+
+## POST /api/v1/system-reset
+Скидає симуляцію до початкового стану. Усередині очищує `ResourceRow`, `ComponentRow`, `AgentRunRow`, після чого викликає `INITIAL_STATE` для повторного заповнення.
+
+- Тіло запиту: відсутнє
+- Відповідь 200:
+```json
+{
+  "components": [{ "id": "comp-strategy", "name": "Strategy", "status": "Active" }],
+  "resources": [{ "id": "res-tech", "name": "Technology Solutions", "type": "Technological", "value": 62.0 }]
 }
 ```
 

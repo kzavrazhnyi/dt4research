@@ -1,4 +1,4 @@
-# dt4research — API Reference (v1.0.0.4)
+# dt4research — API Reference (v1.1.0)
 
 Base URL: `http://127.0.0.1:8000`
 
@@ -55,6 +55,18 @@ Response 200:
     "input_goal": "Improve customer service",
     "applied_rules_explanation": {"Communication": 15}
   }]
+}
+```
+
+## POST /api/v1/system-reset
+Resets the simulation to its initial state. Internally clears `ResourceRow`, `ComponentRow`, and `AgentRunRow`, then re-seeds `INITIAL_STATE`.
+
+- Request body: none
+- Response 200:
+```json
+{
+  "components": [{ "id": "comp-strategy", "name": "Strategy", "status": "Active" }],
+  "resources": [{ "id": "res-tech", "name": "Technology Solutions", "type": "Technological", "value": 62.0 }]
 }
 ```
 

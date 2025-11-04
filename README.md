@@ -66,6 +66,8 @@ dt4research/
 - `GET /` – interactive dashboard
 - `GET /api/v1/system-state` – current `SystemState`
 - `POST /api/v1/apply-mechanism` – applies agent logic, returns `newState` + explanation details
+- `GET /api/v1/agent-runs` – history of agent runs (query: `limit`, `offset`)
+- `POST /api/v1/system-reset` – reset to initial state (clears state and history, re-seeds)
 
 ### Cybernetic Concept
 ```
@@ -112,6 +114,13 @@ Supported environment variables (optional; sensible defaults are used):
 - Scope of localization: history block title, analytics block title, indices labels, reset button label, confirm/toast messages, and any new UI labels.
 - Testing: verify both EN/UK via the language switch; missing keys must fall back to EN and be logged during development.
 
+### UI Additions in v1.1.0
+- History block (Run History / Історія запусків): shows timestamp, input goal, explanation for last N runs.
+- Analytics block (Key Indices / Ключові індекси):
+  - Adaptiveness A = (Technological + Strategic + Informational) / 3
+  - Sustainability S = (Technological + Educational + Risk) / 3
+  - Displayed with mini-bars (0–100).
+
 ### Testing
 Run tests from `venv`:
 ```powershell
@@ -122,6 +131,15 @@ Run tests from `venv`:
 - Backend: FastAPI, Uvicorn, Pydantic
 - Frontend: Cytoscape.js, vanilla JavaScript
 - Storage: In-memory (designed for SQLite/PostgreSQL transition)
+
+-### Version Video Presentations (Newest first)
+PDF: Smart data with Cursor AI — [Download](/plan/Smart%20data%20with%20Cursor%20AI.%20Розумні%20дані%20з%20Cursor%20AI.pdf)
+- dt4research 1.1.0 — Smart data with Cursor AI: [YouTube](https://www.youtube.com/watch?v=DL6YPSd6ppk)
+- dt4research 1.0.0.4 — Smart data with Cursor AI and management mechanisms: [YouTube](https://www.youtube.com/watch?v=z7zIV4yAKOw)
+- dt4research 1.0.0.3 — Smart data with Cursor AI and management mechanisms: [YouTube](https://www.youtube.com/watch?v=mZISM3IhgOw)
+- dt4research 1.0.0.2 — Smart data with Cursor AI and management mechanisms: [YouTube](https://www.youtube.com/watch?v=HrORYhMlNfU)
+- dt4research 1.0.0.1 — Smart data with Cursor AI and management mechanisms: [YouTube](https://www.youtube.com/watch?v=cal_GzkN1HM)
+- 0 — Smart data with Cursor AI. Get started: [YouTube](https://www.youtube.com/watch?v=6xtUx7HiTqQ)
 
 ### License
 MIT License — see `LICENSE`.
@@ -183,6 +201,8 @@ dt4research/
 - `GET /` — веб-інтерфейс з інтерактивним графом
 - `GET /api/v1/system-state` — отримати поточний `SystemState`
 - `POST /api/v1/apply-mechanism` — застосувати логіку агента та отримати `newState` з поясненням
+- `GET /api/v1/agent-runs` — історія запусків агента (параметри: `limit`, `offset`)
+- `POST /api/v1/system-reset` — скидання до початкового стану (очищує стан і історію, перевисіває)
 
 ### Кібернетична концепція
 ```
@@ -229,6 +249,13 @@ dt4research/
 - Обов’язково локалізуємо: заголовок історії, заголовок аналітики, підписи індексів, підпис кнопки скидання, повідомлення підтвердження та тости, а також усі нові написи UI.
 - Тестування: перевіряти EN/UK через перемикач; відсутні ключі мають тимчасово підставляти EN та бути виправлені до релізу.
 
+### UI-доповнення у v1.1.0
+- Блок історії (Run History / Історія запусків): показує час, ціль і пояснення останніх запусків.
+- Блок аналітики (Key Indices / Ключові індекси):
+  - A = (Technological + Strategic + Informational) / 3
+  - S = (Technological + Educational + Risk) / 3
+  - Відображаються міні-барами (0–100).
+
 ### Тестування
 Запуск тестів із `venv`:
 ```powershell
@@ -239,6 +266,15 @@ dt4research/
 - Бекенд: FastAPI, Uvicorn, Pydantic
 - Фронтенд: Cytoscape.js, нативний JavaScript
 - Дані: In-memory (готовий перехід до SQLite/PostgreSQL)
+
+### Відеопрезентації версій (Найновіші спочатку)
+PDF: Smart data with Cursor AI / Розумні дані з Cursor AI — [Завантажити](/plan/Smart%20data%20with%20Cursor%20AI.%20Розумні%20дані%20з%20Cursor%20AI.pdf)
+- (dt4research 1.1.0) Smart data with Cursor AI / Розумні дані з Cursor AI: [YouTube](https://www.youtube.com/watch?v=DL6YPSd6ppk)
+- (dt4research 1.0.0.4) Розумні дані з Cursor AI та формування управлінських механізмів цифрової трансформації підприємств: [YouTube](https://www.youtube.com/watch?v=z7zIV4yAKOw)
+- (dt4research 1.0.0.3) Розумні дані з Cursor AI та формування управлінських механізмів цифрової трансформації підприємств: [YouTube](https://www.youtube.com/watch?v=mZISM3IhgOw)
+- (dt4research 1.0.0.2) Розумні дані з Cursor AI та формування управлінських механізмів цифрової трансформації підприємств: [YouTube](https://www.youtube.com/watch?v=HrORYhMlNfU)
+- (dt4research 1.0.0.1) Розумні дані з Cursor AI та формування управлінських механізмів цифрової трансформації підприємств: [YouTube](https://www.youtube.com/watch?v=cal_GzkN1HM)
+- 0 — Розумні дані з Cursor AI. Початок: [YouTube](https://www.youtube.com/watch?v=6xtUx7HiTqQ)
 
 ### Ліцензія
 Проєкт поширюється на умовах MIT License — дивіться `LICENSE`.

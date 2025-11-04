@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const languageSelect = document.getElementById('languageSelect');
     const btnTechPlan = document.getElementById('btnTechPlan');
     const btnApiRef = document.getElementById('btnApiRef');
+    const btnVideos = document.getElementById('btnVideos');
 
     const logUI = (...args) => console.log('[UI]', ...args);
 
@@ -34,6 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
             applyButtonLoading: 'Analyzing...',
             techPlanBtn: 'Tech Plan',
             apiBtn: 'API',
+            videosBtn: 'Videos',
             historyTitle: 'Run History',
             analyticsTitle: 'Key Indices',
             resetButton: 'Reset State',
@@ -87,6 +89,7 @@ document.addEventListener('DOMContentLoaded', function() {
             applyButtonLoading: 'Аналізує...',
             techPlanBtn: 'Технічний план',
             apiBtn: 'API',
+            videosBtn: 'Відео',
             historyTitle: 'Історія запусків',
             analyticsTitle: 'Ключові індекси',
             resetButton: 'Скинути стан',
@@ -312,6 +315,7 @@ document.addEventListener('DOMContentLoaded', function() {
         languageSelect.value = currentLanguage;
         if (btnTechPlan) btnTechPlan.textContent = locale.techPlanBtn;
         if (btnApiRef) btnApiRef.textContent = locale.apiBtn;
+        if (btnVideos) btnVideos.textContent = locale.videosBtn;
 
         const selectedData = getSelectedNodeData();
         if (!selectedData) {
@@ -616,6 +620,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const path = currentLanguage === 'uk'
                 ? '/docs/api.uk.html'
                 : '/docs/api.en.html';
+            window.open(path, '_blank');
+        });
+    }
+    if (btnVideos) {
+        btnVideos.addEventListener('click', () => {
+            const path = currentLanguage === 'uk'
+                ? '/docs/videos.uk.html'
+                : '/docs/videos.en.html';
             window.open(path, '_blank');
         });
     }
