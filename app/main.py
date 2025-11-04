@@ -17,7 +17,7 @@ import uvicorn
 from app.models import SystemState, KeyComponent, Resource, MechanismInput, ComponentType, ResourceType, MechanismResponse
 from app.agent_logic import run_mock_analysis
 from app.db import create_db_and_tables
-from app.repository import read_system_state, write_system_state, seed_initial_state, add_agent_run
+from app.repository import read_system_state, write_system_state, seed_initial_state, add_agent_run, clear_state_and_runs
 from app.initial_state import INITIAL_STATE
 
 
@@ -144,6 +144,16 @@ async def get_agent_runs(limit: int = 20, offset: int = 0):
     ]
     return {"total": total, "items": items, "limit": limit, "offset": offset}
 
+
+@app.post("/api/v1/system-reset")
+async def system_reset() -> SystemState:
+    """Reset simulation to initial state (Скинути симуляцію до початкового стану)."""
+    # Clear all tables (Очистити всі таблиці)
+    clear_state_and_runs()
+    # Seed initial state (Заповнити початковим станом)
+    seed_initial_state(_initial_state)
+    # Return initial state (Повернути початковий стан)
+    return read_system_state()
 
 if __name__ == "__main__":
     uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True)

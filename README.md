@@ -52,6 +52,16 @@ dt4research/
 └── start_server.bat     # CMD start script
 ```
 
+### Cursor Development Rules
+- Always work in the virtual environment `venv/`; activate via PowerShell `./venv/Scripts/Activate.ps1`.
+- Always start the server using `start_server.ps1` or `start_server.bat` (do not run `uvicorn` directly).
+- PowerShell scripts must enforce UTF-8 output for correct Ukrainian text.
+- We work on Windows; do not use shell operator `&&` in scripts/commands.
+- Code comments: English first with concise Ukrainian in parentheses.
+- Follow PEP 8; add type hints and docstrings.
+- UI must be bilingual (EN/UK). Do not hardcode labels in HTML; set them from `app/static/app.js` using locale keys.
+- New UI strings: add keys to `locales.en` and `locales.uk` in `app/static/app.js` during development; ensure both are complete before merging.
+
 ### API Endpoints
 - `GET /` – interactive dashboard
 - `GET /api/v1/system-state` – current `SystemState`
@@ -91,6 +101,16 @@ Supported environment variables (optional; sensible defaults are used):
 ### Internationalization
 - English is the default UI language; Ukrainian can be selected from the page header.
 - Graph node labels, details panel, tooltips and controls update instantly on language change.
+
+#### Localization Policy (i18n/l10n)
+- Supported languages: English (EN) and Ukrainian (UK). EN is the source-of-truth for new strings.
+- Development workflow:
+  - Implement new UI text in EN first and add string keys to `locales.en` in `app/static/app.js`.
+  - Add corresponding keys to `locales.uk` immediately (may temporarily mirror EN during prototyping).
+  - Before merging to `main`, ensure UK translations are complete and verified in UI.
+- Do not hardcode user-facing text in `index.html`. Use element IDs and set labels from `app.js` based on the current locale.
+- Scope of localization: history block title, analytics block title, indices labels, reset button label, confirm/toast messages, and any new UI labels.
+- Testing: verify both EN/UK via the language switch; missing keys must fall back to EN and be logged during development.
 
 ### Testing
 Run tests from `venv`:
@@ -198,6 +218,16 @@ dt4research/
 ### Локалізація
 - Англійська — основна мова інтерфейсу; українська обирається у шапці сторінки.
 - Підписи вузлів графа, панель деталей, тултіпи та елементи керування оновлюються миттєво при зміні мови.
+
+#### Правила локалізації (i18n/l10n)
+- Підтримувані мови: Англійська (EN) та Українська (UK). EN — джерело правди для нових рядків.
+- Робочий процес:
+  - Спочатку додаємо новий текст UI англійською та ключ у `locales.en` (`app/static/app.js`).
+  - Одразу створюємо відповідний ключ у `locales.uk` (на етапі прототипу допускається тимчасовий текст EN).
+  - Перед злиттям у `main` обов’язково завершуємо переклад UK і перевіряємо в UI.
+- Не хардкодити тексти інтерфейсу у `index.html`. Використовувати ідентифікатори елементів і встановлювати тексти з `app.js` згідно з поточною мовою.
+- Обов’язково локалізуємо: заголовок історії, заголовок аналітики, підписи індексів, підпис кнопки скидання, повідомлення підтвердження та тости, а також усі нові написи UI.
+- Тестування: перевіряти EN/UK через перемикач; відсутні ключі мають тимчасово підставляти EN та бути виправлені до релізу.
 
 ### Тестування
 Запуск тестів із `venv`:

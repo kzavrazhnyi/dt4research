@@ -43,6 +43,7 @@
                         <label for="goalInput" id="goalLabel">Strategic goal:</label>
                         <input type="text" id="goalInput" placeholder="Enter strategic goal (e.g., 'Increase ecological efficiency')" />
                         <button id="applyButton">Run Agent</button>
+                        <button id="resetButton" class="reset-btn">Скинути стан</button>
                     </div>
                 </div>
 
@@ -51,6 +52,14 @@
                     <div id="detailsContent" class="details-content">
                         <p id="detailsPlaceholder">Click a graph node to see details.</p>
                     </div>
+                </div>
+                <div class="history">
+                    <h3 id="historyTitle"></h3>
+                    <ul id="historyList"></ul>
+                </div>
+                <div class="analytics">
+                    <h3 id="analyticsTitle"></h3>
+                    <div id="analyticsContent">...</div>
                 </div>
             </aside>
 

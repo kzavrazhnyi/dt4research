@@ -4,9 +4,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // DOM elements (English label first, Ukrainian in parentheses)
     const mainGraphDiv = document.getElementById('cy-graph-main');
     const applyButton = document.getElementById('applyButton');
+    const resetButton = document.getElementById('resetButton');
     const goalInput = document.getElementById('goalInput');
     const goalLabel = document.getElementById('goalLabel');
     const detailsTitle = document.getElementById('detailsTitle');
+    const historyTitle = document.getElementById('historyTitle');
+    const analyticsTitle = document.getElementById('analyticsTitle');
     const detailsContent = document.getElementById('detailsContent');
     const headerTitle = document.getElementById('headerTitle');
     const languageLabel = document.getElementById('languageLabel');
@@ -31,6 +34,15 @@ document.addEventListener('DOMContentLoaded', function() {
             applyButtonLoading: 'Analyzing...',
             techPlanBtn: 'Tech Plan',
             apiBtn: 'API',
+            historyTitle: 'Run History',
+            analyticsTitle: 'Key Indices',
+            resetButton: 'Reset State',
+            confirmReset: 'Are you sure you want to reset the simulation?',
+            toastResetDone: 'State reset to initial',
+            analyticsLabels: {
+                adaptiveness: 'Adaptiveness Index (A)',
+                sustainability: 'Sustainability Index (S)'
+            },
             alertEmptyGoal: 'Please enter a strategic goal!',
             alertRequestError: 'Error processing request',
             alertNetworkError: 'Server communication error',
@@ -75,6 +87,15 @@ document.addEventListener('DOMContentLoaded', function() {
             applyButtonLoading: 'Аналізує...',
             techPlanBtn: 'Технічний план',
             apiBtn: 'API',
+            historyTitle: 'Історія запусків',
+            analyticsTitle: 'Ключові індекси',
+            resetButton: 'Скинути стан',
+            confirmReset: 'Ви впевнені, що хочете скинути симуляцію?',
+            toastResetDone: 'Стан скинуто до початкового',
+            analyticsLabels: {
+                adaptiveness: 'Індекс Адаптивності (A)',
+                sustainability: 'Індекс Сталості (S)'
+            },
             alertEmptyGoal: 'Будь ласка, введіть стратегічну ціль!',
             alertRequestError: 'Помилка при обробці запиту',
             alertNetworkError: 'Помилка зв\'язку з сервером',
@@ -170,6 +191,58 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let selectedNodeId = null;
 
+    // Render agent run history (Відобразити історію запусків агента)
+    async function loadAgentHistory() {
+        try {
+            const response = await fetch('/api/v1/agent-runs?limit=10');
+            const payload = await response.json();
+            const list = document.getElementById('historyList');
+            if (!list) {
+                return;
+            }
+            list.innerHTML = '';
+
+            const formatExplanation = (exp) => {
+                // Format explanation object or string (Форматування пояснення об'єкта або рядка)
+                if (exp && typeof exp === 'object') {
+                    const parts = [];
+                    for (const [k, v] of Object.entries(exp)) {
+                        parts.push(`${k}: ${v > 0 ? '+' : ''}${Number(v).toFixed(1)}`);
+                    }
+                    return parts.join('; ');
+                }
+                if (typeof exp === 'string') {
+                    return exp;
+                }
+                return '';
+            };
+
+            const escapeHtml = (str) => {
+                // Basic HTML escape (Базове екранування HTML)
+                return String(str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            };
+
+            (payload.items || []).forEach((item) => {
+                const li = document.createElement('li');
+                const ts = new Date(item.timestamp);
+                const tsStr = isNaN(ts.getTime()) ? item.timestamp : ts.toLocaleString();
+                li.innerHTML = `
+                    <div><strong>${tsStr}</strong></div>
+                    <div>${escapeHtml(item.input_goal || '')}</div>
+                    <div>${escapeHtml(formatExplanation(item.applied_rules_explanation))}</div>
+                `;
+                list.appendChild(li);
+            });
+        } catch (e) {
+            console.error('Failed to load agent history', e); // Log error (Журнал помилки)
+        }
+    }
+
     const getLocale = () => locales[currentLanguage];
 
     const translateComponent = (componentId, fallback) => {
@@ -233,6 +306,9 @@ document.addEventListener('DOMContentLoaded', function() {
         goalLabel.textContent = locale.goalLabel;
         goalInput.placeholder = locale.goalPlaceholder;
         detailsTitle.textContent = locale.detailsTitle;
+        if (historyTitle) historyTitle.textContent = locale.historyTitle;
+        if (analyticsTitle) analyticsTitle.textContent = locale.analyticsTitle;
+        if (resetButton) resetButton.textContent = locale.resetButton;
         languageSelect.value = currentLanguage;
         if (btnTechPlan) btnTechPlan.textContent = locale.techPlanBtn;
         if (btnApiRef) btnApiRef.textContent = locale.apiBtn;
@@ -331,6 +407,26 @@ document.addEventListener('DOMContentLoaded', function() {
             renderDetails(selectedData);
             applyTranslationsToGraph();
             logUI('Graph updated', { nodes: cy_main.nodes().length, edges: cy_main.edges().length });
+
+            // Compute basic analytics indices (Обчислити базові індекси аналітики)
+            const byType = {};
+            (state.resources || []).forEach((r) => { byType[r.type] = Number(r.value) || 0; });
+            const val = (t) => Math.max(0, Math.min(100, byType[t] ?? 0));
+            const A = (val('Technological') + val('Strategic') + val('Informational')) / 3;
+            const S = (val('Technological') + val('Educational') + val('Risk')) / 3;
+
+            const analytics = document.getElementById('analyticsContent');
+            if (analytics) {
+                const labels = getLocale().analyticsLabels;
+                analytics.innerHTML = `
+                    <div><strong>${labels.adaptiveness}</strong>: ${A.toFixed(1)}
+                        <div class="mini-bar"><div class="mini-bar__fill" style="width: ${A}%"></div></div>
+                    </div>
+                    <div style=\"margin-top:10px;\"><strong>${labels.sustainability}</strong>: ${S.toFixed(1)}
+                        <div class="mini-bar"><div class="mini-bar__fill" style="width: ${S}%"></div></div>
+                    </div>
+                `;
+            }
         } catch (error) {
             console.error('Error updating main graph:', error);
             logUI('Failed to update main graph', error);
@@ -378,6 +474,35 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Lightweight toast notification (Легке сповіщення-тост)
+    function showToast(message) {
+        const existing = document.getElementById('dt4r-toast');
+        if (existing) existing.remove();
+        const div = document.createElement('div');
+        div.id = 'dt4r-toast';
+        div.textContent = String(message || '');
+        // Inline style for portability (Інлайн-стиль для портативності)
+        div.style.position = 'fixed';
+        div.style.right = '20px';
+        div.style.bottom = '20px';
+        div.style.maxWidth = '380px';
+        div.style.padding = '12px 14px';
+        div.style.background = 'rgba(50, 50, 50, 0.92)';
+        div.style.color = '#fff';
+        div.style.borderRadius = '8px';
+        div.style.boxShadow = '0 4px 12px rgba(0,0,0,0.25)';
+        div.style.zIndex = '9999';
+        div.style.fontSize = '14px';
+        div.style.opacity = '0';
+        div.style.transition = 'opacity 200ms ease';
+        document.body.appendChild(div);
+        requestAnimationFrame(() => { div.style.opacity = '1'; });
+        setTimeout(() => {
+            div.style.opacity = '0';
+            setTimeout(() => div.remove(), 250);
+        }, 3500);
+    }
+
     applyButton.addEventListener('click', async () => {
         const locale = getLocale();
         const goal = goalInput.value.trim();
@@ -402,9 +527,15 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             if (response.ok) {
-                const newState = await response.json();
-                console.log(locale.consoleApplied, newState);
-                logUI('Apply response received', newState);
+                const data = await response.json();
+                console.log(locale.consoleApplied, data);
+                logUI('Apply response received', data);
+                // Immediate feedback with explanation (Негайний зворотний зв'язок із поясненням)
+                if (data && data.explanation) {
+                    showToast(data.explanation);
+                }
+                // Refresh history list right away (Оновити історію негайно)
+                await loadAgentHistory();
                 await updateMainGraph();
                 selectedNodeId = null;
                 renderDetails(null);
@@ -437,11 +568,38 @@ document.addEventListener('DOMContentLoaded', function() {
         await updateMainGraph();
     });
 
+    if (resetButton) {
+        resetButton.addEventListener('click', async () => {
+            const confirmed = confirm(getLocale().confirmReset);
+            if (!confirmed) {
+                return;
+            }
+            try {
+                resetButton.disabled = true;
+                const resp = await fetch('/api/v1/system-reset', { method: 'POST' });
+                if (resp.ok) {
+                    await updateMainGraph();
+                    await loadAgentHistory();
+                    selectedNodeId = null;
+                    renderDetails(null);
+                    showToast(getLocale().toastResetDone);
+                } else {
+                    alert(getLocale().alertRequestError);
+                }
+            } catch (e) {
+                alert(getLocale().alertNetworkError);
+            } finally {
+                resetButton.disabled = false;
+            }
+        });
+    }
+
     (async () => {
         updateStaticText();
         await updateMainGraph();
         applyTranslationsToGraph();
         logUI('Interface ready');
+        await loadAgentHistory();
     })();
 
     // Doc links

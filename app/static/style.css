@@ -155,6 +155,31 @@ body {
     transform: translateY(0);
 }
 
+/* Reset button (Кнопка скидання) */
+.reset-btn {
+    padding: 10px 20px;
+    background: #e53935; /* Red (Червоний) */
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.reset-btn:hover {
+    background: #c62828;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.18);
+}
+
+.reset-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
 .graphs-container {
     position: relative;
     background: white;
@@ -257,6 +282,54 @@ body {
     margin-top: 6px;
     color: #444;
     font-size: 12px;
+}
+
+/* History list (Історія запусків) */
+.history {
+    background: white; /* Subtle card (Непомітна картка) */
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.history h3 {
+    margin-bottom: 10px; /* Title spacing (Відступ заголовка) */
+    color: #444;
+}
+
+.history ul {
+    list-style: none; /* No bullets (Без маркерів) */
+    max-height: 220px; /* Scrollable (Прокрутка) */
+    overflow-y: auto;
+    padding-right: 6px; /* Space for scrollbar (Місце для смуги прокрутки) */
+}
+
+.history li {
+    padding: 10px 8px; /* Item spacing (Відступ елемента) */
+    border-bottom: 1px solid #eee; /* Separator (Розділювач) */
+    font-size: 13px;
+    color: #555;
+}
+
+.history li:last-child {
+    border-bottom: none;
+}
+
+/* Analytics block (Блок аналітики) */
+.analytics {
+    background: white;
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.analytics h3 {
+    margin-bottom: 10px;
+    color: #444;
+}
+
+.analytics .mini-bar__fill {
+    background: linear-gradient(90deg, #42a5f5, #66bb6a); /* Visual cue (Візуальний акцент) */
 }
 
 

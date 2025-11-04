@@ -5,7 +5,7 @@ Repository layer for persistence operations (Репозиторій для оп�
 import json
 from typing import List, Tuple
 
-from sqlmodel import select
+from sqlmodel import select, delete
 
 from app.db import get_session, create_db_and_tables
 from app.db_models import ComponentRow, ResourceRow, AgentRunRow
@@ -94,4 +94,14 @@ def list_agent_runs(limit: int = 20, offset: int = 0) -> Tuple[int, List[AgentRu
         ).all()
         return total, runs
 
+
+
+def clear_state_and_runs() -> None:
+    """Clear components, resources, and agent runs (Очистити компоненти, ресурси та запуски агента)."""
+    with get_session() as session:
+        # Delete in dependency-safe order (Видалення у безпечному порядку залежностей)
+        session.exec(delete(AgentRunRow))
+        session.exec(delete(ResourceRow))
+        session.exec(delete(ComponentRow))
+        session.commit()
 
