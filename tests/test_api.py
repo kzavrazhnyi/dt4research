@@ -197,3 +197,14 @@ def test_scenario_5_system_reset_after_changes(client: TestClient):
 
 
 
+def test_mask_url_credentials_general():
+    """Ensure mask utility replaces credentials with asterisks (Перевірити, що утиліта маскує облікові дані зірочками)."""
+    from app.main import _mask_url_credentials
+
+    masked = _mask_url_credentials("amqp://user:secret@host")
+    assert masked == "amqp://***@host"
+
+    masked_db = _mask_url_credentials("postgresql://pg_user:pg_pass@db.local:5432/db")
+    assert masked_db == "postgresql://***@db.local:5432/db"
+
+

@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import logging
 import os
 import json
+import re  # For URL masking (Для маскування URL)
 import uvicorn
 
 from app.models import SystemState, KeyComponent, Resource, MechanismInput, ComponentType, ResourceType, MechanismResponse
@@ -19,6 +20,34 @@ from app.agent_logic import run_mock_analysis
 from app.db import create_db_and_tables
 from app.repository import read_system_state, write_system_state, seed_initial_state, add_agent_run, clear_state_and_runs
 from app.initial_state import INITIAL_STATE
+# Universal URL credentials masker (Універсальна утиліта маскування облікових даних у URL)
+def _mask_url_credentials(url: str) -> str:
+    """
+    Mask credentials in URL by replacing everything between '//' and '@' with '***'
+    (Маскує облікові дані у URL, замінюючи все між '//' та '@' на '***').
+    Handles cases where '@' may appear in password (Обробляє випадки, коли '@' може бути в паролі).
+    Example: "postgres://user:pass@host.com" -> "postgres://***@host.com"
+    """
+    try:
+        # Find the position of '//' and the last '@'
+        # (Знайти позицію '//' та останній '@')
+        start = url.find("//")
+        if start == -1:
+            return url  # No protocol prefix found (Не знайдено префікс протоколу)
+
+        end = url.rfind("@")  # <-- Key fix: find last @ (Ключове виправлення: знайти останній @)
+        if end == -1 or end < start:
+            return url  # No '@' found after protocol (Не знайдено '@' після протоколу)
+
+        # Rebuild the string: protocol + '***' + host part
+        # (Перебудувати рядок: протокол + '***' + хост)
+        return f"{url[:start+2]}***@{url[end+1:]}"
+    except Exception as e:
+        # Simplified fallback logic (Спрощена запасна логіка)
+        logging.getLogger(__name__).warning("URL masking failed: %s", e)
+        if "@" in url:
+            return f"***@{url.split('@')[-1]}"
+        return "URL [masking failed]"
 
 
 # Initialize FastAPI app (Ініціалізація застосунку FastAPI)
@@ -89,6 +118,12 @@ async def root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 
+@app.get("/settings", response_class=HTMLResponse)
+async def settings_page(request: Request):
+    """Render settings page (Віддати сторінку налаштувань)."""
+    return templates.TemplateResponse("settings.html", {"request": request})
+
+
 @app.get("/api/v1/system-state")
 async def get_system_state() -> SystemState:
     """Return current system state (Повернути поточний стан системи)."""
@@ -98,31 +133,84 @@ async def get_system_state() -> SystemState:
 @app.get("/api/v1/health/db")
 async def health_db():
     """
-    Database health check (Перевірка стану бази даних).
-    Tries simple connection and returns masked URL and driver info (Пробує просте підключення і повертає маскований URL та драйвер).
+    Database health check (Перевірка підключення до БД).
+    Always returns masked URL (Завжди повертає замаскований URL).
     """
+    # Get URL and driver hint (Отримати URL та тип драйвера)
+    from app.db import DATABASE_URL  # type: ignore
+    # Get original URL from environment (not from db.py which might be modified)
+    # (Отримати оригінальний URL з оточення, не з db.py, який може бути модифікований)
+    import os
+    original_url = os.getenv("DATABASE_URL", DATABASE_URL)
+    masked_url = _mask_url_credentials(original_url)
+    # Ensure masking is correct - if URL still contains anything between // and @, force mask
+    # (Переконатися, що маскування правильне - якщо URL все ще містить щось між // та @, примусити маскування)
+    if "//" in masked_url and "@" in masked_url:
+        start = masked_url.find("//")
+        end = masked_url.find("@")
+        if start != -1 and end != -1 and end > start + 2:
+            between = masked_url[start+2:end]
+            if between != "***":
+                # Force correct masking (Примусити правильне маскування)
+                masked_url = f"{masked_url[:start+2]}***@{masked_url[end+1:]}"
+    driver = "postgresql" if "postgresql" in original_url else "sqlite"
+
     try:
-        # Import inside to avoid circulars (Імпорт всередині для уникнення циклічних залежностей)
-        from app.db import engine  # type: ignore
-
-        # Run lightweight check (Легка перевірка)
-        with engine.connect() as conn:
-            conn.exec_driver_sql("SELECT 1")
-
-        driver = getattr(engine.dialect, "name", "unknown")
-        # Mask password in URL (Замаскувати пароль в URL)
-        try:
-            safe_url = engine.url.render_as_string(hide_password=True)  # type: ignore[attr-defined]
-        except Exception:
-            safe_url = str(engine.url).replace(str(engine.url.password or ""), "***")  # fallback
-
-        return {
-            "ok": True,
-            "driver": driver,
-            "url": safe_url,
-        }
+        # Trigger real connection via repository (Спробувати реальне підключення через репозиторій)
+        from app.repository import read_system_state  # type: ignore
+        read_system_state()
+        return {"ok": True, "status": "connected", "url": masked_url, "driver": driver}
     except Exception as exc:
-        return {"ok": False, "error": str(exc)}
+        # Mask any URLs in error message (Маскувати будь-які URL у повідомленні про помилку)
+        error_msg = str(exc)
+        error_msg = _mask_url_credentials(error_msg) if "//" in error_msg and "@" in error_msg else error_msg
+        logging.getLogger(__name__).warning("DB health check failed: %s", exc)
+        return {"ok": False, "status": "failed", "error": error_msg, "url": masked_url, "driver": driver}
+
+
+@app.get("/api/v1/health/rabbit")
+async def health_rabbit():
+    """
+    RabbitMQ health check (Перевірка підключення RabbitMQ/CloudAMQP).
+    Always returns masked URL (Завжди повертає замаскований URL).
+    """
+    import os
+    import logging as _logging
+    import pika  # type: ignore
+
+    masked_url = "N/A"
+    try:
+        # Build masked URL from env (Сформувати замаскований URL із оточення)
+        real_url = os.getenv("RABBITMQ_URL", "amqp://guest:guest@rabbitmq:5672/%2F")
+        # Always mask the URL (Завжди маскувати URL)
+        masked_url = _mask_url_credentials(real_url)
+        # Ensure masking was applied (Переконатися, що маскування застосовано)
+        if masked_url == real_url and "//" in real_url and "@" in real_url:
+            # Force masking if it didn't work (Примусити маскування, якщо не спрацювало)
+            _logging.getLogger(__name__).error("URL masking failed for RabbitMQ, forcing mask")
+            # Use rfind as fallback (Використати rfind як резервний варіант)
+            start = real_url.find("//")
+            end = real_url.rfind("@")
+            if start != -1 and end != -1 and end > start:
+                masked_url = f"{real_url[:start+2]}***@{real_url[end+1:]}"
+
+        # Connect with real parameters (Підключення з реальними параметрами)
+        try:
+            from app.consumer import get_rabbit_params  # type: ignore
+            params = get_rabbit_params()
+        except Exception:
+            params = pika.URLParameters(real_url)
+
+        connection = pika.BlockingConnection(params)
+        connection.close()
+
+        return {"ok": True, "status": "connected", "url": masked_url, "driver": "pika"}
+    except Exception as exc:
+        # Mask any URLs in error message (Маскувати будь-які URL у повідомленні про помилку)
+        error_msg = str(exc)
+        error_msg = _mask_url_credentials(error_msg) if "//" in error_msg and "@" in error_msg else error_msg
+        _logging.getLogger(__name__).warning("RabbitMQ health check failed: %s", exc)
+        return {"ok": False, "status": "failed", "error": error_msg, "url": masked_url}
 
 
 @app.post("/api/v1/apply-mechanism")

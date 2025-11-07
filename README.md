@@ -57,6 +57,10 @@ dt4research/
 - Always start the server using `start_server.ps1` or `start_server.bat` (do not run `uvicorn` directly).
 - PowerShell scripts must enforce UTF-8 output for correct Ukrainian text.
 - We work on Windows; do not use shell operator `&&` in scripts/commands.
+- No confirmation is required when changing into the project root directory.
+- Place all new test scripts inside the `tests/` directory.
+- Немає потреби підтверджувати перехід у кореневу директорію проєкту.
+- Усі нові тестові скрипти створюємо в каталозі `tests/`.
 - Code comments: English first with concise Ukrainian in parentheses.
 - Follow PEP 8; add type hints and docstrings.
 - UI must be bilingual (EN/UK). Do not hardcode labels in HTML; set them from `app/static/app.js` using locale keys.

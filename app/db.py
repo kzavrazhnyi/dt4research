@@ -23,8 +23,8 @@ def _build_engine(url: str):
     """Create engine with SQLite-specific connect args (Створити engine з особливими параметрами для SQLite)."""
     connect_args: Optional[Dict[str, Any]] = None
     if url.startswith("sqlite"):
-        # check_same_thread=False allows usage across threads in Uvicorn reload mode
-        # (потрібно для режиму перезавантаження Uvicorn)
+# check_same_thread=False allows usage across threads in Uvicorn reload mode
+# (потрібно для режиму перезавантаження Uvicorn)
         connect_args = {"check_same_thread": False}
     return create_engine(url, echo=False, connect_args=connect_args or {})
 

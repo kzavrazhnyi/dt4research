@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dt4research — <span id="settingsTitleHead">Налаштування</span></title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap&subset=cyrillic" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/settings.js" defer></script>
+</head>
+<body>
+<div class="container">
+    <header class="page-header">
+        <div class="header-content">
+            <h1 id="settingsTitle">Налаштування</h1>
+            <div class="doc-links">
+                <a id="btnBack" class="link-btn" href="/">← Назад</a>
+                <select id="settingsLangSelect" aria-label="Language selector" style="margin-left:8px;">
+                    <option value="uk">Українська</option>
+                    <option value="en">English</option>
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <main class="main" style="padding:16px;">
+        <section style="margin-bottom:24px;">
+            <h2 id="dbSectionTitle">Перевірка БД</h2>
+            <p id="dbSectionDesc">Підключення до Postgres (Neon/Supabase) через DATABASE_URL</p>
+            <button id="btnCheckDb" class="link-btn" type="button">Перевірити БД</button>
+            <pre id="dbResult" style="background:#111;color:#eee;padding:12px;border-radius:8px;overflow:auto;margin-top:10px;">
+            </pre>
+        </section>
+
+        <section>
+            <h2 id="rabbitSectionTitle">Перевірка RabbitMQ</h2>
+            <p id="rabbitSectionDesc">Підключення до CloudAMQP через RABBITMQ_URL</p>
+            <button id="btnCheckRabbit" class="link-btn" type="button">Перевірити RabbitMQ</button>
+            <pre id="rabbitResult" style="background:#111;color:#eee;padding:12px;border-radius:8px;overflow:auto;margin-top:10px;">
+            </pre>
+        </section>
+    </main>
+</div>
+</body>
+</html>
