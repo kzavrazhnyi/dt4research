@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnTechPlan = document.getElementById('btnTechPlan');
     const btnApiRef = document.getElementById('btnApiRef');
     const btnVideos = document.getElementById('btnVideos');
+    const btnDbHealth = document.getElementById('btnDbHealth');
 
     const logUI = (...args) => console.log('[UI]', ...args);
 
@@ -36,6 +37,9 @@ document.addEventListener('DOMContentLoaded', function() {
             techPlanBtn: 'Tech Plan',
             apiBtn: 'API',
             videosBtn: 'Videos',
+            dbHealthBtn: 'DB Health',
+            dbHealthOk: 'Database connection OK',
+            dbHealthFail: 'Database connection FAILED',
             historyTitle: 'Run History',
             analyticsTitle: 'Key Indices',
             resetButton: 'Reset State',
@@ -90,6 +94,9 @@ document.addEventListener('DOMContentLoaded', function() {
             techPlanBtn: 'Технічний план',
             apiBtn: 'API',
             videosBtn: 'Відео',
+            dbHealthBtn: 'Перевірити БД',
+            dbHealthOk: 'Підключення до БД: OK',
+            dbHealthFail: 'Підключення до БД: ПОМИЛКА',
             historyTitle: 'Історія запусків',
             analyticsTitle: 'Ключові індекси',
             resetButton: 'Скинути стан',
@@ -316,6 +323,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (btnTechPlan) btnTechPlan.textContent = locale.techPlanBtn;
         if (btnApiRef) btnApiRef.textContent = locale.apiBtn;
         if (btnVideos) btnVideos.textContent = locale.videosBtn;
+        if (btnDbHealth) btnDbHealth.textContent = locale.dbHealthBtn;
 
         const selectedData = getSelectedNodeData();
         if (!selectedData) {
@@ -629,6 +637,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 ? '/docs/videos.uk.html'
                 : '/docs/videos.en.html';
             window.open(path, '_blank');
+        });
+    }
+    if (btnDbHealth) {
+        btnDbHealth.addEventListener('click', async () => {
+            try {
+                // Try dedicated health endpoint first (Спершу пробуємо окремий ендпоінт)
+                let resp = await fetch('/api/v1/health/db');
+                if (resp.status === 404) {
+                    // Fallback: use system-state as DB probe (Запасний варіант: /system-state як перевірка БД)
+                    resp = await fetch('/api/v1/system-state');
+                    if (resp.ok) {
+                        showToast(getLocale().dbHealthOk);
+                        console.log('[Health] DB OK via system-state');
+                        return;
+                    }
+                }
+                const data = await resp.json().catch(() => ({}));
+                if (data && data.ok) {
+                    const msg = `${getLocale().dbHealthOk} | driver=${String(data.driver || '')}`;
+                    showToast(msg);
+                    console.log('[Health] DB OK:', data);
+                } else {
+                    const msg = `${getLocale().dbHealthFail}${data && data.error ? `: ${data.error}` : ''}`;
+                    showToast(msg);
+                    console.warn('[Health] DB FAIL:', data);
+                }
+            } catch (e) {
+                showToast(getLocale().dbHealthFail);
+                console.error('[Health] DB error', e);
+            }
         });
     }
 });

@@ -1,3 +1,29 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+
+# Env files (Do not commit secrets) (Не комітити секрети)
+.env
+.env.local
+*.env
+
+# Databases
+data.db
+*.sqlite3
+
+# OS / Editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# MCP / Neon local config
+.config/
+.mcp/
 .venv/
 venv/
 __pycache__/

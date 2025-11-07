@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  # 1) Main API (Головний API)
+  api:
+    build: .
+    container_name: dt4_api
+    ports:
+      - "8000:8000"
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+      - RABBITMQ_URL=${RABBITMQ_URL:-amqp://guest:guest@rabbitmq:5672/%2F}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:////code/data/data.db}
+    volumes:
+      - .:/code
+      - db_data:/code/data
+    depends_on:
+      - rabbitmq
+
+  # 2) RabbitMQ broker (Посередник повідомлень)
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: dt4_rabbitmq
+    ports:
+      - "5672:5672"     # App port (Порт для додатків)
+      - "15672:15672"   # Web UI (Веб-інтерфейс)
+
+  # 3) Integration Service (ERP Simulator) (Симулятор ERP)
+  integration_service:
+    build: ./integration_service
+    container_name: dt4_integration
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+      - RABBITMQ_URL=${RABBITMQ_URL:-amqp://guest:guest@rabbitmq:5672/%2F}
+    volumes:
+      - ./integration_service:/code
+    depends_on:
+      - rabbitmq
+
+  # 4) API Consumer (Worker) (Слухач подій)
+  api_consumer:
+    build: .
+    container_name: dt4_api_consumer
+    command: python app/consumer.py
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+      - RABBITMQ_URL=${RABBITMQ_URL:-amqp://guest:guest@rabbitmq:5672/%2F}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:////code/data/data.db}
+    volumes:
+      - .:/code
+      - db_data:/code/data
+    depends_on:
+      - rabbitmq
+      - api
+
+volumes:
+  db_data:
+    driver: local
+
+
+
+
+

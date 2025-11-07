@@ -4,18 +4,31 @@ Uses SQLite with SQLModel and is designed to be swappable to PostgreSQL later
 (Використовує SQLite з SQLModel і спроєктована для майбутньої заміни на PostgreSQL).
 """
 
+import os
 from contextlib import contextmanager
-from typing import Iterator
+from typing import Iterator, Optional, Dict, Any
 
 from sqlmodel import Session, SQLModel, create_engine
 
 
-# SQLite file in project root (Файл SQLite у корені проєкту)
-DATABASE_URL = "sqlite:///./data.db"
+# Database URL with env override (URL БД з можливістю перевизначення через змінну середовища)
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./data.db")
 
-# check_same_thread=False allows usage across threads in Uvicorn reload mode
-# (потрібно для режиму перезавантаження Uvicorn)
-engine = create_engine(DATABASE_URL, echo=False, connect_args={"check_same_thread": False})
+# Normalize driver for PostgreSQL to psycopg if needed
+if DATABASE_URL.startswith("postgresql://") and "+psycopg" not in DATABASE_URL:
+    # Use SQLAlchemy psycopg (v3) driver explicitly (Використати драйвер psycopg v3 явно)
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
+
+def _build_engine(url: str):
+    """Create engine with SQLite-specific connect args (Створити engine з особливими параметрами для SQLite)."""
+    connect_args: Optional[Dict[str, Any]] = None
+    if url.startswith("sqlite"):
+        # check_same_thread=False allows usage across threads in Uvicorn reload mode
+        # (потрібно для режиму перезавантаження Uvicorn)
+        connect_args = {"check_same_thread": False}
+    return create_engine(url, echo=False, connect_args=connect_args or {})
+
+engine = _build_engine(DATABASE_URL)
 
 
 def create_db_and_tables() -> None:

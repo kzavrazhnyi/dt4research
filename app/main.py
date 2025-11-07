@@ -95,6 +95,36 @@ async def get_system_state() -> SystemState:
     return read_system_state()
 
 
+@app.get("/api/v1/health/db")
+async def health_db():
+    """
+    Database health check (Перевірка стану бази даних).
+    Tries simple connection and returns masked URL and driver info (Пробує просте підключення і повертає маскований URL та драйвер).
+    """
+    try:
+        # Import inside to avoid circulars (Імпорт всередині для уникнення циклічних залежностей)
+        from app.db import engine  # type: ignore
+
+        # Run lightweight check (Легка перевірка)
+        with engine.connect() as conn:
+            conn.exec_driver_sql("SELECT 1")
+
+        driver = getattr(engine.dialect, "name", "unknown")
+        # Mask password in URL (Замаскувати пароль в URL)
+        try:
+            safe_url = engine.url.render_as_string(hide_password=True)  # type: ignore[attr-defined]
+        except Exception:
+            safe_url = str(engine.url).replace(str(engine.url.password or ""), "***")  # fallback
+
+        return {
+            "ok": True,
+            "driver": driver,
+            "url": safe_url,
+        }
+    except Exception as exc:
+        return {"ok": False, "error": str(exc)}
+
+
 @app.post("/api/v1/apply-mechanism")
 async def apply_mechanism(input_data: MechanismInput) -> MechanismResponse:
     """

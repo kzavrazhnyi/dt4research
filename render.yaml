@@ -21,6 +21,27 @@ services:
     envVars:
       - key: PYTHONUNBUFFERED
         value: "1"
+      - key: DATABASE_URL
+        value: "REPLACE_WITH_POSTGRES_URL" # e.g. Supabase/Neon URI (рядок підключення)
+      - key: RABBITMQ_URL
+        value: "REPLACE_WITH_CLOUDAMQP_URL" # CloudAMQP connection URL
+
+  - type: worker # Background Worker (Фоновий воркер)
+    name: dt4research-consumer
+    env: python
+    plan: free
+    region: oregon
+
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app/consumer.py
+
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: DATABASE_URL
+        value: "REPLACE_WITH_POSTGRES_URL"
+      - key: RABBITMQ_URL
+        value: "REPLACE_WITH_CLOUDAMQP_URL"
 
     # Note: On Render Linux containers, Windows-specific start scripts are not used
     # (Примітка: у Linux‑контейнерах Render Windows‑специфічні скрипти запуску не використовуються)
