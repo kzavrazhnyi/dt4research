@@ -1,6 +1,6 @@
 # dt4research — Technical Plan (v1.0.0.4)
 
-Status: Delivered (Stage 3: Persistence)
+Status: Delivered (Stage 3: Persistence) — updated with v1.2.0 diagnostics (health checks, credential masking)
 
 ## 1. Architecture Overview
 - Backend: FastAPI + Pydantic
@@ -38,7 +38,12 @@ Files: `app/db.py`, `app/db_models.py`, `app/repository.py`, `app/initial_state.
 Flow: startup → create tables + seed; GET → read DB; POST apply → read → run agent → persist state + history → return.
 
 ## 4. Environment & Config
-`.env` (optional; defaults exist): LOG_FORMAT, LOG_LEVEL, RULE_* coefficients.
+`.env` (optional; defaults exist):
+- `DATABASE_URL` (defaults to `sqlite:///./data.db` locally; masked in diagnostics)
+- `RABBITMQ_URL` (CloudAMQP/local broker; masked in diagnostics)
+- `LOG_FORMAT` (`console` | `json`)
+- `LOG_LEVEL` (`INFO` default)
+- `RULE_*` coefficients
 
 ## 5. Frontend (EN/UA)
 Language switch; translates graph labels, details, tooltips, controls; console logs `[UI]`.
@@ -53,3 +58,8 @@ Language switch; translates graph labels, details, tooltips, controls; console l
 
 
 
+## 8. Additions in v1.2.0
+- Health endpoints: `GET /api/v1/health/db`, `GET /api/v1/health/rabbit`
+- URL masking utility shared across diagnostics and settings page (credentials replaced with `***`)
+- `/settings` page surfaces environment hints with masked connection strings
+- README codifies git version-control hygiene for contributors

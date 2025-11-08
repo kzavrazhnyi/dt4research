@@ -1,6 +1,8 @@
 # dt4research — Відеопрезентації версій (Найновіші спочатку)
 
-PDF: Smart data with Cursor AI / Розумні дані з Cursor AI — /plan/Smart%20data%20with%20Cursor%20AI.%20Розумні%20дані%20з%20Cursor%20AI.pdf
+PDF: Smart data with Cursor AI / Розумні дані з Cursor AI — [Завантажити](/plan/Smart%20data%20with%20Cursor%20AI.%20Розумні%20дані%20з%20Cursor%20AI.pdf)
+
+- (dt4research 1.2.0) Діагностика та правила git (відео готується)
 
 - (dt4research 1.1.0) Smart data with Cursor AI / Розумні дані з Cursor AI
   - YouTube: https://www.youtube.com/watch?v=DL6YPSd6ppk

@@ -1,6 +1,6 @@
 # dt4research — Technical Plan (v1.0.0.4)
 
-Status: Delivered (Stage 3: Persistence)
+Status: Delivered (Stage 3: Persistence) — updated with v1.2.0 diagnostics (health checks & masking)
 
 ## 1. Architecture Overview
 
@@ -58,6 +58,8 @@ Flow:
 ## 4. Environment & Config
 
 `.env` (optional; defaults applied):
+- `DATABASE_URL` (локально `sqlite:///./data.db`; замаскований у діагностиці)
+- `RABBITMQ_URL` (рядок CloudAMQP/локального брокера; замаскований у діагностиці)
 - `LOG_FORMAT` = `console` | `json`
 - `LOG_LEVEL` = `INFO`
 - Rule coefficients (examples):
@@ -102,3 +104,8 @@ Run:
 
 
 
+## 9. Additions in v1.2.0
+- Health checks for DB and RabbitMQ with mandatory credential masking
+- Shared URL masking helper reused by diagnostics and `/settings`
+- Settings page outlines environment variables with masked connection strings
+- README documents git workflow expectations (version-control hygiene)

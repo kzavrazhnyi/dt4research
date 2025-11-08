@@ -1,4 +1,4 @@
-# dt4research — API Reference (v1.1.0)
+# dt4research — API Reference (v1.2.0)
 
 Base URL: `http://127.0.0.1:8000`
 
@@ -8,6 +8,10 @@ Content-Type: `application/json`
 
 ## GET /
 - Description: Serve the SPA dashboard (Cytoscape.js graph, language switch)
+- Response: HTML
+
+## GET /settings
+- Description: Serve the configuration/settings page (masked connection URLs, environment hints)
 - Response: HTML
 
 ## GET /api/v1/system-state
@@ -82,6 +86,32 @@ Content-Type: `application/json`
 }
 ```
 
+## GET /api/v1/health/db
+- Description: Database health check. Establishes a real connection through the repository and always returns a masked URL (credentials replaced with `***`).
+- Response 200
+```json
+{
+  "ok": true,
+  "status": "connected",
+  "url": "postgresql://***@host.example/neondb?sslmode=require",
+  "driver": "postgresql"
+}
+```
+- Failure responses include the masked URL plus a sanitized error message.
+
+## GET /api/v1/health/rabbit
+- Description: RabbitMQ/CloudAMQP health check with mandatory URL masking.
+- Response 200
+```json
+{
+  "ok": true,
+  "status": "connected",
+  "url": "amqps://***@duck.lmq.cloudamqp.com/tcflaeri",
+  "driver": "pika"
+}
+```
+- Failure responses mask any URL fragments inside the error field.
+
 ## Models (Pydantic)
 - `MechanismInput`
 ```json
@@ -107,6 +137,7 @@ Content-Type: `application/json`
 ## Notes
 - Logging format controlled via `LOG_FORMAT` (`console` | `json`)
 - Coefficients for rules configured via `.env` with safe defaults
+- Health endpoints mask credentials between `//` and `@` before returning URLs
 
 
 

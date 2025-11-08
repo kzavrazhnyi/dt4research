@@ -61,6 +61,7 @@ dt4research/
 - Place all new test scripts inside the `tests/` directory.
 - Немає потреби підтверджувати перехід у кореневу директорію проєкту.
 - Усі нові тестові скрипти створюємо в каталозі `tests/`.
+- Keep work under version control with clean, focused git commits (Підтримуйте чисту історію git із логічними комітами).
 - Code comments: English first with concise Ukrainian in parentheses.
 - Follow PEP 8; add type hints and docstrings.
 - UI must be bilingual (EN/UK). Do not hardcode labels in HTML; set them from `app/static/app.js` using locale keys.
@@ -81,18 +82,25 @@ Manager Goal → Agent Analysis → State Update → Feedback Loop
 - **Key components (5):** Strategy, Structure, Processes, Culture, Resources
 
 ### Planning Snapshot
-- Completed: 1.0.0.3 “Robust Backend”
+- Current release: 1.2.0 “Operational Diagnostics”
+  - Credential-masked health checks for database and RabbitMQ
+  - `/settings` page surfaces environment hints with masked connection strings
+  - README documents git version-control hygiene for contributors
+- Previous milestone: 1.1.0 “Smart Data Cockpit”
+  - UI memory & feedback (run history, toast explanations)
+  - Basic analytics indices (Adaptiveness A, Sustainability S)
+  - System reset workflow polished for bilingual UI
+- Earlier baseline: 1.0.0.3 “Robust Backend”
   - Input validation (`min_length` on mechanism input)
   - Environment-based coefficients via `.env` (defaults applied if missing)
   - API response returns `newState`, `explanation`, `explanation_details`
   - CORS enabled; standardized logging (console or JSON via `LOG_FORMAT`)
   - Test suite with `pytest` (3 tests) running under `venv`
-  - Bilingual UI with runtime language toggle
-- Previous baseline: 1.0.0.2 (UI/UX enhancements)
-- Next stage: 1.0.0.4 “Persistence” (`plan/` directory)
 
 ### Configuration (.env)
 Supported environment variables (optional; sensible defaults are used):
+- `DATABASE_URL` – defaults to `sqlite:///./data.db` for local persistence
+- `RABBITMQ_URL` – AMQP connection string (CloudAMQP or local broker)
 - `LOG_FORMAT` = `console` | `json`
 - `LOG_LEVEL` = `INFO` (typical values: DEBUG, INFO, WARNING, ERROR)
 - Rule coefficients (example defaults in parentheses):
@@ -103,6 +111,19 @@ Supported environment variables (optional; sensible defaults are used):
   - `RULE_RISK_RISK` (20), `RULE_RISK_OPER` (10)
   - `RULE_EDU_EDU` (20), `RULE_EDU_ORG` (10)
   - `RULE_DEFAULT_TECH` (5), `RULE_DEFAULT_STRAT` (5), `RULE_DEFAULT_FIN` (5)
+
+#### Local development setup
+1. Create a `.env` file in the project root (same level as `start_server.ps1`).
+2. Add the variables you need. For a purely local run, this minimal setup is enough:
+   ```env
+   DATABASE_URL=sqlite:///./data.db
+   RABBITMQ_URL=amqp://guest:guest@localhost:5672/%2F
+   LOG_LEVEL=INFO
+   ```
+   - Keep `sqlite:///./data.db` if you do not have PostgreSQL locally.
+   - Replace `localhost` with your CloudAMQP endpoint when you connect to a hosted RabbitMQ instance.
+3. Restart the server with `./start_server.ps1` after changing `.env` so the new values are loaded.
+4. Never commit `.env`; store secrets in your password manager or CI/CD secret storage.
 
 ### Internationalization
 - English is the default UI language; Ukrainian can be selected from the page header.
@@ -117,6 +138,11 @@ Supported environment variables (optional; sensible defaults are used):
 - Do not hardcode user-facing text in `index.html`. Use element IDs and set labels from `app.js` based on the current locale.
 - Scope of localization: history block title, analytics block title, indices labels, reset button label, confirm/toast messages, and any new UI labels.
 - Testing: verify both EN/UK via the language switch; missing keys must fall back to EN and be logged during development.
+
+### UI/UX Additions in v1.2.0
+- Settings page highlights environment variables with masked URLs.
+- Health diagnostics status shown alongside masked connection strings (DB & RabbitMQ).
+- Documentation links added for version-control workflow.
 
 ### UI Additions in v1.1.0
 - History block (Run History / Історія запусків): shows timestamp, input goal, explanation for last N runs.
@@ -228,6 +254,8 @@ dt4research/
 
 ### Налаштування (.env)
 Підтримувані змінні середовища (опційно; є адекватні значення за замовчуванням):
+- `DATABASE_URL` — типовий `sqlite:///./data.db` для локальної роботи
+- `RABBITMQ_URL` — AMQP-рядок підключення (CloudAMQP або локальний брокер)
 - `LOG_FORMAT` = `console` | `json`
 - `LOG_LEVEL` = `INFO` (типові: DEBUG, INFO, WARNING, ERROR)
 - Коефіцієнти правил (типові значення в дужках):
@@ -238,6 +266,19 @@ dt4research/
   - `RULE_RISK_RISK` (20), `RULE_RISK_OPER` (10)
   - `RULE_EDU_EDU` (20), `RULE_EDU_ORG` (10)
   - `RULE_DEFAULT_TECH` (5), `RULE_DEFAULT_STRAT` (5), `RULE_DEFAULT_FIN` (5)
+
+#### Локальне налаштування
+1. Створіть файл `.env` у корені проєкту (там само, де лежить `start_server.ps1`).
+2. Додайте необхідні змінні. Для суто локального запуску достатньо такого прикладу:
+   ```env
+   DATABASE_URL=sqlite:///./data.db
+   RABBITMQ_URL=amqp://guest:guest@localhost:5672/%2F
+   LOG_LEVEL=INFO
+   ```
+   - Залишайте `sqlite:///./data.db`, якщо PostgreSQL відсутній локально.
+   - Замініть `localhost` на адресу свого CloudAMQP, коли підключаєтесь до віддаленого RabbitMQ.
+3. Після змін у `.env` перезапустіть сервер командою `./start_server.ps1`, щоб оновити змінні.
+4. Не комітьте `.env`; зберігайте секрети у менеджері паролів або сховищі CI/CD.
 
 ### Локалізація
 - Англійська — основна мова інтерфейсу; українська обирається у шапці сторінки.
@@ -252,6 +293,11 @@ dt4research/
 - Не хардкодити тексти інтерфейсу у `index.html`. Використовувати ідентифікатори елементів і встановлювати тексти з `app.js` згідно з поточною мовою.
 - Обов’язково локалізуємо: заголовок історії, заголовок аналітики, підписи індексів, підпис кнопки скидання, повідомлення підтвердження та тости, а також усі нові написи UI.
 - Тестування: перевіряти EN/UK через перемикач; відсутні ключі мають тимчасово підставляти EN та бути виправлені до релізу.
+
+### UI/UX-оновлення у v1.2.0
+- Сторінка налаштувань підсвічує змінні середовища з замаскованими URL.
+- Статус діагностики БД та RabbitMQ відображається поруч із маскованими рядками підключення.
+- Документацію доповнено інструкціями з контролю версій.
 
 ### UI-доповнення у v1.1.0
 - Блок історії (Run History / Історія запусків): показує час, ціль і пояснення останніх запусків.
