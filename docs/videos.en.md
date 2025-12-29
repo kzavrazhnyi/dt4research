@@ -2,7 +2,8 @@
 
 PDF: Smart data with Cursor AI — [Download](/plan/Smart%20data%20with%20Cursor%20AI.%20Розумні%20дані%20з%20Cursor%20AI.pdf)
 
-- dt4research 1.2.0 — Operational diagnostics & git guidelines (video coming soon)
+- dt4research 1.2.0 — Smart data with Cursor AI. Розумні дані з Cursor AI
+  - YouTube: https://www.youtube.com/watch?v=mNUwFqOXUrs
 
 - dt4research 1.1.0 — Smart data with Cursor AI
   - YouTube: https://www.youtube.com/watch?v=DL6YPSd6ppk

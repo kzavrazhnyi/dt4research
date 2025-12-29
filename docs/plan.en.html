@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Technical Plan — dt4research v1.2.0</title>
+    <title>Technical Plan — dt4research v1.4.0</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
@@ -12,27 +12,28 @@
         .doc-header{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:48px 0;margin-bottom:24px}
         .card-doc{border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.08)}
         .api-endpoint{background:#eef1f7;padding:6px 10px;border-radius:6px;font-family:"Courier New",monospace}
+        .formula{background:#f8f9fa;padding:12px;border-left:4px solid #667eea;border-radius:4px;font-family:"Courier New",monospace;margin:8px 0}
     </style>
 </head>
 <body>
 <nav class="navbar navbar-light bg-white shadow-sm"><div class="container"><a class="navbar-brand" href="/"><i class="fas fa-brain me-2"></i>dt4research</a></div></nav>
 <header class="doc-header text-center">
     <div class="container">
-        <h1 class="h2 mb-2"><i class="fas fa-screwdriver-wrench me-2"></i>Technical Plan (v1.2.0)</h1>
-        <p class="mb-0">Stage 2 — Manager Cockpit (Diagnostics, Memory, Feedback, Analytics)</p>
+        <h1 class="h2 mb-2"><i class="fas fa-screwdriver-wrench me-2"></i>Technical Plan (v1.4.0)</h1>
+        <p class="mb-0">Stage 4 — Scientific Simulation & Metrics (S, C, A Indices)</p>
     </div>
 </header>
 <main class="container">
     <section class="card card-doc mb-3"><div class="card-body">
         <h5 class="card-title"><i class="fas fa-circle-info text-primary me-2"></i>Overview</h5>
-        <p class="mb-2">FastAPI + Pydantic backend; rule-based agent with <code>.env</code> coefficients; persistence via SQLite/SQLModel (PostgreSQL-ready); bilingual UI (EN/UA).</p>
+        <p class="mb-2">FastAPI + Pydantic backend; rule-based agent with <code>.env</code> coefficients; persistence via SQLite/SQLModel (PostgreSQL-ready); bilingual UI (EN/UA); scientific analytics and simulation.</p>
         <div class="row g-3">
             <div class="col-md-6"><div class="p-3 bg-light rounded h-100">
                 <strong>Stack</strong>
                 <ul class="mb-0">
                     <li>FastAPI, Uvicorn, Pydantic</li>
                     <li>SQLModel (SQLAlchemy 2), SQLite</li>
-                    <li>Cytoscape.js, Tippy.js</li>
+                    <li>Cytoscape.js, Tippy.js, Chart.js</li>
                     <li>python-dotenv, Pytest</li>
                 </ul>
             </div></div>
@@ -59,6 +60,8 @@ flowchart TD
   D --> E[(SQLite)]
   C --> B
   B --> A
+  F[Simulation] -->|Time Series| G[Analytics]
+  G -->|S, C, A Indices| H[Charts]
         </div>
         <div class="row g-3 mt-2">
             <div class="col-md-6"><img class="img-fluid rounded" src="../plan/ai_agent_runtime.png" alt="runtime"></div>
@@ -88,21 +91,88 @@ erDiagram
     string applied_rules_explanation
     string snapshot_state
   }
+  SimulationMetrics {
+    float s_index
+    float c_index
+    float a_index
+    datetime timestamp
+  }
+        </div>
+    </div></section>
+
+    <section class="card card-doc mb-3"><div class="card-body">
+        <h5 class="card-title"><i class="fas fa-calculator text-info me-2"></i>Scientific Metrics (v1.4.0)</h5>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <h6 class="text-primary">S Index (Sustainability)</h6>
+                <div class="formula">S = (R<sub>eco</sub> + R<sub>soc</sub>) / 2 × (1 - W)</div>
+                <small class="text-muted">
+                    R<sub>eco</sub>: technological resources<br>
+                    R<sub>soc</sub>: social/cultural resources<br>
+                    W: waste/entropy<br>
+                    Range: 0.0 - 1.0
+                </small>
+            </div>
+            <div class="col-md-4">
+                <h6 class="text-success">C Index (Control)</h6>
+                <div class="formula">C = 1 - (N<sub>alerts</sub> / N<sub>ops</sub>)</div>
+                <small class="text-muted">
+                    N<sub>alerts</sub>: number of incidents<br>
+                    N<sub>ops</sub>: total operations<br>
+                    Range: 0.0 - 1.0<br>
+                    C = 1.0 means perfect control
+                </small>
+            </div>
+            <div class="col-md-4">
+                <h6 class="text-warning">A Index (Adaptability)</h6>
+                <div class="formula">A = T<sub>adapt</sub> / T<sub>market</sub></div>
+                <small class="text-muted">
+                    T<sub>adapt</sub>: system adaptation time (days)<br>
+                    T<sub>market</sub>: market change time (days, default: 30)<br>
+                    A &lt; 1.0: faster than market
+                </small>
+            </div>
+        </div>
+    </div></section>
+
+    <section class="card card-doc mb-3"><div class="card-body">
+        <h5 class="card-title"><i class="fas fa-play-circle text-danger me-2"></i>Simulation Engine (v1.4.0)</h5>
+        <p class="mb-2">Automated time series data generation for scientific analysis of system behavior.</p>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <strong>Intensity Levels:</strong>
+                <ul>
+                    <li><strong>Low:</strong> Events every 3 days, simple goals</li>
+                    <li><strong>Medium:</strong> Events every 2 days, moderate variety</li>
+                    <li><strong>High:</strong> Events every day, diverse scenarios</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <strong>API Endpoints:</strong>
+                <ul class="mb-0">
+                    <li><code class="api-endpoint">POST /api/v1/simulation/run</code></li>
+                    <li><code class="api-endpoint">GET /api/v1/simulation/metrics/current</code></li>
+                    <li><code class="api-endpoint">GET /api/v1/simulation/metrics/history</code></li>
+                    <li><code class="api-endpoint">GET /api/v1/simulation/summary</code></li>
+                </ul>
+            </div>
         </div>
     </div></section>
 
     <section class="card card-doc mb-4"><div class="card-body">
-        <h5 class="card-title"><i class="fas fa-check text-success me-2"></i>Delivered in 1.2.0</h5>
+        <h5 class="card-title"><i class="fas fa-check text-success me-2"></i>Delivered in 1.4.0</h5>
         <ul class="mb-2">
-            <li>UI Memory & Feedback: Run History block (last 10 runs) and toast explanations</li>
-            <li>System Reset: <code>POST /api/v1/system-reset</code> clears state/history and re-seeds</li>
-            <li>Basic Analytics: Adaptiveness (A) and Sustainability (S) indices in sidebar</li>
-            <li>Bilingual UI enhancements (EN/UK) for history, analytics, reset, confirm/toast</li>
-            <li>Credential-masked health diagnostics for database and RabbitMQ</li>
-            <li>Operational guidelines: version-control hygiene documented in README</li>
-            <li>Docs updated (API v1.2.0, Videos page)</li>
+            <li><strong>Scientific Metrics:</strong> Implemented calculation of S (Sustainability), C (Control), A (Adaptability) indices with mathematical formulas</li>
+            <li><strong>Simulation Engine:</strong> Automated time series data generation with different intensity levels</li>
+            <li><strong>Analytics Module:</strong> Functions for metrics calculation and data extraction from system state (<code>app/analytics.py</code>)</li>
+            <li><strong>Visualization:</strong> New "Scientific Analytics" panel with charts (Chart.js) and before/after comparison tables</li>
+            <li><strong>API Endpoints:</strong> New endpoints for simulation and metrics</li>
+            <li><strong>Testing:</strong> Added tests for analytics (<code>tests/test_analytics.py</code>) and simulation (<code>tests/test_simulation.py</code>)</li>
         </ul>
-        <div class="small text-muted">Previous (1.0.0.4): Persistence via SQLite/SQLModel and basic run history API.</div>
+        <div class="small text-muted">
+            <strong>Previous (1.2.0):</strong> UI Memory & Feedback, System Reset, Basic Analytics, Bilingual UI, Health Checks.<br>
+            <strong>Previous (1.0.0.4):</strong> Persistence via SQLite/SQLModel and basic run history API.
+        </div>
     </div></section>
 </main>
 <script>

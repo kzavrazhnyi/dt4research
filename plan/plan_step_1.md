@@ -1,3 +1,223 @@
+# Plan for Creating dt4research (Stage 1: Simulation Prototype)
+
+## English Version
+
+## 1. Project Setup and Dependencies
+
+**Create structure:**
+
+```
+dt4research/
+├── app/
+│   ├── __init__.py
+│   ├── main.py
+│   ├── models.py
+│   ├── agent_logic.py
+│   ├── templates/
+│   │   └── index.html
+│   └── static/
+│       ├── app.js
+│       └── style.css
+├── requirements.txt
+└── .gitignore
+```
+
+**requirements.txt:**
+
+```
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.4.0
+jinja2>=3.1.0
+```
+
+**Activate venv and install:**
+
+```powershell
+venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+## 2. Data Models (app/models.py)
+
+**ResourceType Enum** — 9 types according to plan:
+
+- Communication, Educational, Financial, Informational, Operational, Organizational, Risk, Strategic, Technological
+
+**ComponentType Enum** — key components:
+
+- Strategy, Structure, Processes, Culture, Resources
+
+**Pydantic models:**
+
+- `Resource`: id, name, type (ResourceType), value (float, 0-100)
+- `KeyComponent`: id, name (ComponentType), status (str)
+- `SystemState`: components (List[KeyComponent]), resources (List[Resource])
+- `MechanismInput`: target_goal (str)
+
+**Model note:** Component "Resources" is included in `KeyComponent` for conceptual completeness, but on the main graph all 9 specific resources are displayed as separate nodes (flat graph). This ensures simplicity and clarity of visualization of changes.
+
+## 3. FastAPI Backend (app/main.py)
+
+**Global variable `current_state`** — initialize with hardcoded initial data (5 components + 9 resources with values ~50-70).
+
+**Jinja2 and StaticFiles:**
+
+- `Jinja2Templates(directory="app/templates")`
+- `app.mount("/static", StaticFiles(directory="app/static"), name="static")`
+
+**Endpoints:**
+
+- `GET /` → renders `index.html`
+- `GET /api/v1/system-state` → returns current `current_state` as JSON
+- `POST /api/v1/apply-mechanism` → accepts `MechanismInput`, calls `agent_logic.run_mock_analysis()`, updates global state, returns new state
+
+## 4. Agent Logic (app/agent_logic.py)
+
+**Function `run_mock_analysis(goal: str, current_state: SystemState) -> SystemState`:**
+
+- Create deep copy of state
+- Use `print()` for logging agent "thoughts"
+- Rule-based logic (examples):
+  - If "recycling" or "ecology" in goal → +20 to Technological, +15 to Educational, +10 to Risk
+  - If "client" or "service" → +15 to Communication, +10 to Informational, +10 to Operational
+  - If "innovation" or "digital" → +25 to Technological, +15 to Strategic
+  - If "partner" or "ecosystem" → +20 to Organizational, +10 to Communication
+- Limit resource values to range 0-100
+- Return modified state
+
+## 5. Frontend HTML (app/templates/index.html) — Hybrid Approach
+
+**Structure:**
+
+- Header: "dt4research — Cybernetic Model of Digital Transformation"
+- **Manager Impact Panel** (class `controls`):
+  - `<input id="goalInput" placeholder="Enter strategic goal...">`
+  - `<button id="applyButton">Run Agent</button>`
+- **Main Visualization** (Main View):
+  - `<div id="cy-graph-main"></div>` (80% screen height)
+- **Detailed Visualization** (Detail View, initially hidden):
+  - `<div id="cy-graph-detail" style="display: none;"></div>`
+  - `<button id="backButton" style="display: none;">← Back to Overview</button>`
+- Connect Cytoscape.js from CDN
+- Connect `/static/app.js` and `/static/style.css`
+
+**Switching logic:**
+
+- Main graph displays flat graph (5 components + 9 resources as separate nodes)
+- On click on "Resources" node, user transitions to detailed view
+- In detailed view "Resources" becomes compound node (parent node), and 9 resources — child nodes with grid layout
+- "Back" button returns to main overview
+
+## 6. Client Logic (app/static/app.js) — Hybrid Approach
+
+**Two Cytoscape instances:**
+
+1. `cy_main` — for main graph (container: `#cy-graph-main`)
+2. `cy_detail` — for detailed graph (container: `#cy-graph-detail`)
+
+**Styles for cy_main:**
+
+- Components — blue squares (`shape: 'square'`)
+- Resources — green circles (`shape: 'ellipse'`), size depends on `value`
+- Edges — dashed/solid according to dt_model.png
+
+**Styles for cy_detail:**
+
+- Parent node "Resources" — light gray with border
+- Child resources — green circles with labels `"Name (value)"`
+
+**Function `updateMainGraph()`:**
+
+- `fetch('/api/v1/system-state')`
+- Clear `cy_main.elements().remove()`
+- Add 5 components (including "Resources")
+- Add 9 resources as separate nodes (flat graph)
+- Add edges according to model (Strategy→Processes, Strategy→Structure, Structure→Processes, Processes→Culture, Culture→Resources, each resource→Processes/Culture, etc.)
+- Apply `layout({ name: 'breadthfirst', directed: true })`
+- Call `updateDetailGraph(state)` to synchronize data
+
+**Function `updateDetailGraph(state)`:**
+
+- Clear `cy_detail.elements().remove()`
+- Find component "Resources" in `state.components`
+- Add it as parent node
+- Add 9 resources as child nodes with `parent: 'resources'` and labels with `value`
+- Apply `layout({ name: 'grid', rows: 3, cols: 3 })`
+
+**View switching functions:**
+
+`showMainGraph()`:
+
+- Show `#cy-graph-main` and `.controls`
+- Hide `#cy-graph-detail` and `#backButton`
+
+`showDetailGraph()`:
+
+- Hide `#cy-graph-main` and `.controls`
+- Show `#cy-graph-detail` and `#backButton`
+- Redraw detailed graph layout
+
+**Event handlers:**
+
+- **"Run Agent" button** (`#applyButton`):
+  - Get `goal` from `#goalInput.value`
+  - `fetch('/api/v1/apply-mechanism', { method: 'POST', body: JSON.stringify({ target_goal: goal }), headers: { 'Content-Type': 'application/json' } })`
+  - After successful response call `updateMainGraph()` (this will update both graphs)
+
+- **Click on "Resources" node** in `cy_main`:
+  - `cy_main.on('tap', 'node[name="Resources"]', () => showDetailGraph())`
+
+- **"Back" button** (`#backButton`):
+  - Call `showMainGraph()`
+
+**Startup:**
+
+- Call `updateMainGraph()` on `DOMContentLoaded`
+- Call `showMainGraph()` for initial state
+
+## 7. Styles (app/static/style.css)
+
+- Modern, clean UI with base palette (blue/green/gray)
+- `#cy-graph-main, #cy-graph-detail`: `width: 100%; height: 80vh; border: 1px solid #ccc;`
+- Control panel (`.controls`): flexbox centering, padding, shadows for buttons
+- `#backButton`: positioning in upper left corner, styled as secondary button
+- Responsiveness for desktops
+
+## 8. .gitignore
+
+```
+.venv/
+venv/
+__pycache__/
+*.pyc
+.env
+```
+
+## Success Criteria (Definition of Done)
+
+✅ Project runs: `uvicorn app.main:app --reload`
+
+✅ Browser (`http://127.0.0.1:8000`) shows interactive graph
+
+✅ Graph visualizes initial state (5 components + 9 resources)
+
+✅ Manager enters goal in text field
+
+✅ "Run Agent" button sends POST request
+
+✅ Terminal logs agent "thoughts"
+
+✅ System state updates on backend
+
+✅ Graph automatically updates, displaying new resource values (visually — changed node sizes)
+
+✅ Cybernetic loop closed: Goal → Analysis → Change → Feedback
+
+---
+
+## Українська версія
+
 # План створення dt4research (Етап 1: Прототип Симуляції)
 
 ## 1. Налаштування проєкту та залежностей

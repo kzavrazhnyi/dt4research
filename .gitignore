@@ -35,4 +35,6 @@ __pycache__/
 # Project archives (виключити архіви планів)
 plan/archive/
 
+# Local research workspace (локальна робоча папка дослідження v1.3.0)
+research/
 

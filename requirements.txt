@@ -22,3 +22,9 @@ alembic>=1.13.0
 # PostgreSQL driver (Драйвер PostgreSQL)
 psycopg[binary]==3.2.3
 
+# Graph visualization (Візуалізація графів)
+graphviz>=0.20.3
+
+# FastAPI forms (Підтримка форм)
+python-multipart>=0.0.9
+

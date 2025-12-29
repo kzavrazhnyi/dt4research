@@ -43,6 +43,13 @@ The project uses FastAPI, Pydantic, and Cytoscape.js for visualization.
 - `app/static/` - CSS and JavaScript files
 - `plan/` - Documentation and diagrams
 
+### Documentation Rules
+- **All markdown files in `plan/` directory must be bilingual (English and Ukrainian)**
+- Structure: English version first, followed by Ukrainian version
+- Use clear section separators (e.g., `## English Version` / `## Українська версія` or `---` separator)
+- Both versions should contain the same information and structure
+- When creating or updating plan files, ensure both language versions are complete and synchronized
+
 ### Key Models
 - 9 Resource Types: Communication, Educational, Financial, Informational, Operational, Organizational, Risk, Strategic, Technological
 - 5 Key Components: Strategy, Structure, Processes, Culture, Resources

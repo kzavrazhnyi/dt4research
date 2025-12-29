@@ -1,4 +1,4 @@
-# dt4research — API Reference (v1.2.0)
+# dt4research — API Reference (v1.4.0)
 
 Base URL: `http://127.0.0.1:8000`
 

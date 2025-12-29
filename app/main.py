@@ -6,20 +6,33 @@ Implements the control loop: Manager Goal → Agent Analysis → State Update �
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi import Request
-from fastapi.responses import HTMLResponse
+from fastapi import Request, Form
+from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
+import asyncio
+import queue
+import threading
 import logging
 import os
 import json
 import re  # For URL masking (Для маскування URL)
 import uvicorn
+from pathlib import Path
+from datetime import datetime
+from typing import List, Optional
 
-from app.models import SystemState, KeyComponent, Resource, MechanismInput, ComponentType, ResourceType, MechanismResponse
+from app.models import SystemState, KeyComponent, Resource, MechanismInput, ComponentType, ResourceType, MechanismResponse, SimulationMetrics, SimulationRunRequest
 from app.agent_logic import run_mock_analysis
 from app.db import create_db_and_tables
 from app.repository import read_system_state, write_system_state, seed_initial_state, add_agent_run, clear_state_and_runs
 from app.initial_state import INITIAL_STATE
+from app.presentations_store import read_presentations, write_presentations
+from app.simulation import run_simulation, get_simulation_history, get_simulation_summary, get_agent_logs_history
+from app.analytics import calculate_metrics_from_state
+from app.repository import get_simulation_metrics_by_run_id, get_latest_simulation_run_id, get_all_simulation_metrics
+from fastapi.responses import Response
+import csv
+import io
 # Universal URL credentials masker (Універсальна утиліта маскування облікових даних у URL)
 def _mask_url_credentials(url: str) -> str:
     """
@@ -51,7 +64,7 @@ def _mask_url_credentials(url: str) -> str:
 
 
 # Initialize FastAPI app (Ініціалізація застосунку FastAPI)
-app = FastAPI(title="dt4research - Cybernetic Control System", version="0.1.0")
+app = FastAPI(title="dt4research - Cybernetic Control System", version="1.4.0")
 
 
 # Configure CORS (Налаштування CORS)
@@ -100,6 +113,12 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 app.mount("/docs", StaticFiles(directory="docs"), name="docs")
 app.mount("/plan", StaticFiles(directory="plan"), name="plan")
 
+# Optional mount for local presentation static build (Опційне підключення локальної статичної презентації)
+_local_prez_path = (Path(__file__).parent.parent / "research/03_presentations/adaptive_enterprise_slidev/dist").resolve()
+_local_prez_url = "/presentations/local/adaptive_enterprise"
+if _local_prez_path.exists():
+    app.mount(_local_prez_url, StaticFiles(directory=str(_local_prez_path), html=True), name="presentations_local")
+
 
 # Initial state used for seeding the database (Початковий стан для заповнення БД)
 _initial_state = INITIAL_STATE
@@ -123,6 +142,23 @@ async def settings_page(request: Request):
     """Render settings page (Віддати сторінку налаштувань)."""
     return templates.TemplateResponse("settings.html", {"request": request})
 
+@app.get("/presentations", response_class=HTMLResponse)
+async def presentations_page(request: Request):
+    """List presentations with descriptions (Список презентацій із описами)."""
+    items = read_presentations()
+    local_available = _local_prez_path.exists()
+    local_url = _local_prez_url if local_available else None
+    return templates.TemplateResponse("presentations.html", {"request": request, "items": items, "local_available": local_available, "local_url": local_url})
+
+@app.post("/presentations/add", response_class=HTMLResponse)
+async def presentations_add(request: Request, title: str = Form(...), url: str = Form(...), description: str = Form("")):
+    """
+    Append a presentation link to JSON store (Додати посилання на презентацію у JSON).
+    """
+    items = read_presentations()
+    items.append({"title": title.strip(), "url": url.strip(), "description": description.strip()})
+    write_presentations(items)
+    return templates.TemplateResponse("presentations.html", {"request": request, "items": items})
 
 @app.get("/api/v1/system-state")
 async def get_system_state() -> SystemState:
@@ -224,7 +260,7 @@ async def apply_mechanism(input_data: MechanismInput) -> MechanismResponse:
 
     # Step 2: Read current state from DB and run agent analysis
     current_state = read_system_state()
-    new_state, deltas = run_mock_analysis(goal, current_state)
+    new_state, deltas, _ = run_mock_analysis(goal, current_state, capture_logs=False)
 
     # Step 3: Persist new state and the run history
     write_system_state(new_state)
@@ -272,6 +308,227 @@ async def system_reset() -> SystemState:
     seed_initial_state(_initial_state)
     # Return initial state (Повернути початковий стан)
     return read_system_state()
+
+
+@app.post("/api/v1/simulation/run", response_model=List[SimulationMetrics])
+async def run_simulation_endpoint(request: SimulationRunRequest) -> List[SimulationMetrics]:
+    """
+    Run automated simulation and return time series of metrics (Запустити автоматичну симуляцію та повернути часовий ряд метрик).
+    
+    Args:
+        request: Simulation parameters (Параметри симуляції)
+    
+    Returns:
+        List of SimulationMetrics for each simulation step (Список SimulationMetrics для кожного кроку)
+    """
+    metrics_history = run_simulation(
+        days=request.days,
+        intensity=request.intensity,
+        t_market=request.t_market,
+        use_agent=request.use_agent
+    )
+    return metrics_history
+
+
+@app.post("/api/v1/simulation/run-stream")
+async def run_simulation_stream_endpoint(request: SimulationRunRequest):
+    """
+    Run simulation with real-time log streaming via Server-Sent Events (Запустити симуляцію з потоковою передачею логів через Server-Sent Events).
+    
+    Args:
+        request: Simulation parameters (Параметри симуляції)
+    
+    Returns:
+        StreamingResponse with SSE events (StreamingResponse з SSE подіями)
+    """
+    import queue
+    
+    log_queue = queue.Queue()
+    metrics_result = []
+    
+    def log_callback(log_line: str):
+        """Callback to send logs to queue (Callback для відправки логів у чергу)."""
+        log_queue.put(log_line)
+    
+    async def generate():
+        """Generate SSE events (Генерувати SSE події)."""
+        # Start simulation in background thread (Запустити симуляцію у фоновому потоці)
+        def run_sim():
+            try:
+                result = run_simulation(
+                    days=request.days,
+                    intensity=request.intensity,
+                    t_market=request.t_market,
+                    use_agent=request.use_agent,
+                    log_callback=log_callback
+                )
+                metrics_result.extend(result)
+                log_queue.put(None)  # Signal completion (Сигнал завершення)
+            except Exception as e:
+                log_queue.put(f"ERROR: {str(e)}")
+                log_queue.put(None)
+        
+        sim_thread = threading.Thread(target=run_sim)
+        sim_thread.start()
+        
+        # Stream logs as they arrive (Потоково передавати логи, коли вони надходять)
+        while True:
+            try:
+                log_line = log_queue.get(timeout=0.1)
+                if log_line is None:
+                    # Simulation completed (Симуляція завершена)
+                    yield f"data: {json.dumps({'type': 'complete', 'metrics_count': len(metrics_result)})}\n\n"
+                    break
+                else:
+                    # Send log line (Відправити рядок логу)
+                    yield f"data: {json.dumps({'type': 'log', 'message': log_line})}\n\n"
+            except queue.Empty:
+                # Check if thread is still alive (Перевірити, чи потік ще живий)
+                if not sim_thread.is_alive():
+                    break
+                await asyncio.sleep(0.05)
+        
+        sim_thread.join()
+    
+    return StreamingResponse(
+        generate(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )
+
+
+@app.get("/api/v1/simulation/metrics/current")
+async def get_current_metrics():
+    """
+    Get current system metrics indices (Отримати поточні індекси метрик системи).
+    
+    Returns:
+        Dictionary with current S, C, A indices (Словник з поточними індексами S, C, A)
+    """
+    state = read_system_state()
+    
+    # If indices are already calculated, return them (Якщо індекси вже обчислені, повернути їх)
+    if state.s_index is not None and state.c_index is not None and state.a_index is not None:
+        return {
+            "s_index": state.s_index,
+            "c_index": state.c_index,
+            "a_index": state.a_index,
+            "timestamp": datetime.utcnow().isoformat() + "Z"
+        }
+    
+    # Otherwise calculate from current state (Інакше обчислити з поточного стану)
+    # Use default operational data (Використати типові операційні дані)
+    s_index, c_index, a_index = calculate_metrics_from_state(
+        state,
+        total_ops=100,
+        alerts_count=5,
+        t_adapt=10.0,
+        t_market=30.0
+    )
+    
+    return {
+        "s_index": s_index,
+        "c_index": c_index,
+        "a_index": a_index,
+        "timestamp": datetime.utcnow().isoformat() + "Z"
+    }
+
+
+@app.get("/api/v1/simulation/metrics/history", response_model=List[SimulationMetrics])
+async def get_metrics_history():
+    """
+    Get simulation metrics history (Отримати історію метрик симуляції).
+    
+    Returns:
+        List of SimulationMetrics from last simulation run (Список SimulationMetrics з останнього запуску симуляції)
+    """
+    return get_simulation_history()
+
+
+@app.get("/api/v1/simulation/summary")
+async def get_simulation_summary_endpoint():
+    """
+    Get summary statistics from last simulation (Отримати зведену статистику з останньої симуляції).
+    
+    Returns:
+        Dictionary with before/after comparison (Словник з порівнянням до/після)
+    """
+    history = get_simulation_history()
+    return get_simulation_summary(history)
+
+
+@app.get("/api/v1/simulation/agent-logs")
+async def get_agent_logs():
+    """
+    Get agent logs from last simulation (Отримати логи агента з останньої симуляції).
+    
+    Returns:
+        List of log messages (Список повідомлень логів)
+    """
+    return {"logs": get_agent_logs_history()}
+
+
+@app.get("/api/v1/simulation/export/csv")
+async def export_simulation_csv(run_id: Optional[str] = None):
+    """
+    Export simulation metrics to CSV file (Експортувати метрики симуляції у CSV файл).
+    
+    Args:
+        run_id: Optional simulation run ID. If not provided, exports latest run (Опціональний ID запуску симуляції. Якщо не надано, експортує останній запуск)
+    
+    Returns:
+        CSV file with simulation metrics (CSV файл з метриками симуляції)
+    """
+    if run_id:
+        metrics = get_simulation_metrics_by_run_id(run_id)
+    else:
+        # Get latest run ID (Отримати ID останнього запуску)
+        latest_run_id = get_latest_simulation_run_id()
+        if latest_run_id:
+            metrics = get_simulation_metrics_by_run_id(latest_run_id)
+        else:
+            # Fallback to in-memory history (Резервний варіант - історія в пам'яті)
+            metrics = get_simulation_history()
+    
+    if not metrics:
+        return Response(
+            content="No simulation data available (Немає доступних даних симуляції)",
+            status_code=404,
+            media_type="text/plain"
+        )
+    
+    # Create CSV in memory (Створити CSV в пам'яті)
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Write header (Записати заголовок)
+    writer.writerow(["Day", "Timestamp", "S_Index", "C_Index", "A_Index"])
+    
+    # Write data (Записати дані)
+    for i, metric in enumerate(metrics):
+        writer.writerow([
+            i,
+            metric.timestamp.isoformat(),
+            f"{metric.s_index:.6f}",
+            f"{metric.c_index:.6f}",
+            f"{metric.a_index:.6f}"
+        ])
+    
+    # Return CSV file (Повернути CSV файл)
+    csv_content = output.getvalue()
+    output.close()
+    
+    return Response(
+        content=csv_content,
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": f"attachment; filename=simulation_results_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
+        }
+    )
 
 if __name__ == "__main__":
     uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True)

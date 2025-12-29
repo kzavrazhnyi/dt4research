@@ -1,3 +1,53 @@
+# Project Plan — Version 1.0.0.3
+
+## English Version
+
+## Stage 2: Strengthening the "Nervous System" (Robust Backend)
+Goal: Reliable, tested, configurable agent logic.
+
+Corresponds to previous items: Backend (3), Agent Logic (4), Configuration (6), Testing (7), Security (8).
+
+### 2.1 Input Validation
+- In `models.py` add `min_length` (e.g., 3) to `MechanismInput.target_goal`.
+
+### 2.2 Configuration via .env
+- Add `python-dotenv`.
+- Extract growth coefficients from `agent_logic.py` to `.env` (e.g., `TECH_INCREASE=20`, `EDU_INCREASE=15`, etc.).
+- Read values in `agent_logic.py` with defaults.
+
+### 2.3 API Feedback
+- `POST /api/v1/apply-mechanism` returns object:
+
+```json
+{
+  "newState": SystemState,
+  "explanation": "Applied rule 'Ecology': Technological +20, Educational +15, Risk +10"
+}
+```
+
+- `agent_logic.run_mock_analysis()` also returns explanation structure (rule id, deltas by resources).
+- This feeds "Run History" in UI.
+
+### 2.4 Tests
+- `tests/test_api.py` (pytest + FastAPI TestClient):
+  - GET `/api/v1/system-state` responds with schema.
+  - POST `/api/v1/apply-mechanism` changes values of expected resources within 0–100.
+  - Check run in venv (verify path `sys.executable`).
+
+### 2.5 Environment / Security
+- Add CORS (FastAPI middleware) for potential separate frontend.
+- Standardized logging (JSON handler in prod, readable in dev).
+
+### Stage 2 Success Criteria
+- Configuration with .env for coefficients works.
+- API returns explanation of changes.
+- Basic test suite exists, passing in venv.
+- CORS enabled and configured.
+
+---
+
+## Українська версія
+
 # План проєкту — версія 1.0.0.3
 
 ## Етап 2: Посилення «Нервової Системи» (Robust Backend)

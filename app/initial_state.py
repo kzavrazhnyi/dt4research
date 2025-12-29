@@ -24,7 +24,10 @@ INITIAL_STATE = SystemState(
         Resource(id="res-risk", name="Risk Management", type=ResourceType.RISK, value=50.0),
         Resource(id="res-strat", name="Strategic Planning", type=ResourceType.STRATEGIC, value=68.0),
         Resource(id="res-tech", name="Technology Solutions", type=ResourceType.TECHNOLOGICAL, value=62.0),
-    ]
+    ],
+    s_index=None,
+    c_index=None,
+    a_index=None
 )
 
 

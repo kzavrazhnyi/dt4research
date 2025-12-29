@@ -47,6 +47,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 adaptiveness: 'Adaptiveness Index (A)',
                 sustainability: 'Sustainability Index (S)'
             },
+            controlPanelTitle: 'Strategic Management',
+            indicesTitle: 'Key Indices',
+            operationalView: '🕹️ Operational Management',
+            simulationView: '🔬 Scientific Simulation',
+            simulationSettingsTitle: 'Experiment Settings',
+            simDaysLabel: 'Duration (days):',
+            simIntensityLabel: 'Intensity:',
+            simTMarketLabel: 'T_market (days):',
+            simUseAgentText: 'Activate AI Agent (Experimental Group)',
+            runSimulationBtn: 'Run Simulation',
+            exportCsvBtn: 'Export CSV',
+            metricsTitle: 'Metrics Dynamics (S, C, A)',
+            summaryTitle: 'Results (Before vs After)',
             alertEmptyGoal: 'Please enter a strategic goal!',
             alertRequestError: 'Error processing request',
             alertNetworkError: 'Server communication error',
@@ -102,6 +115,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 adaptiveness: 'Індекс Адаптивності (A)',
                 sustainability: 'Індекс Сталості (S)'
             },
+            controlPanelTitle: 'Стратегічне управління',
+            indicesTitle: 'Ключові Індекси',
+            operationalView: '🕹️ Операційне управління',
+            simulationView: '🔬 Наукова симуляція',
+            simulationSettingsTitle: 'Налаштування експерименту',
+            simDaysLabel: 'Тривалість (днів):',
+            simIntensityLabel: 'Інтенсивність:',
+            simTMarketLabel: 'T_market (днів):',
+            simUseAgentText: 'Активувати AI Агента (Експериментальна група)',
+            runSimulationBtn: 'Запустити симуляцію',
+            exportCsvBtn: 'Експорт CSV',
+            metricsTitle: 'Динаміка показників (S, C, A)',
+            summaryTitle: 'Результати (Before vs After)',
             alertEmptyGoal: 'Будь ласка, введіть стратегічну ціль!',
             alertRequestError: 'Помилка при обробці запиту',
             alertNetworkError: 'Помилка зв\'язку з сервером',
@@ -321,6 +347,42 @@ document.addEventListener('DOMContentLoaded', function() {
         if (btnVideos) btnVideos.textContent = locale.videosBtn;
         if (btnSettings) btnSettings.textContent = locale.settingsBtn;
 
+        // Update new elements (Оновити нові елементи)
+        const controlPanelTitle = document.getElementById('controlPanelTitle');
+        const indicesTitleEl = document.getElementById('indicesTitle');
+        if (controlPanelTitle) controlPanelTitle.textContent = locale.controlPanelTitle;
+        if (indicesTitleEl) indicesTitleEl.textContent = locale.indicesTitle;
+
+        // Update simulation form elements (Оновити елементи форми симуляції)
+        const simulationSettingsTitle = document.getElementById('simulationSettingsTitle');
+        const simDaysLabelText = document.getElementById('simDaysLabelText');
+        const simIntensityLabelText = document.getElementById('simIntensityLabelText');
+        const simTMarketLabelText = document.getElementById('simTMarketLabelText');
+        const simUseAgentText = document.getElementById('simUseAgentText');
+        const runSimulationBtn = document.getElementById('runSimulationBtn');
+        const exportCsvBtn = document.getElementById('exportCsvBtn');
+        const metricsTitle = document.getElementById('metricsTitle');
+        const summaryTitle = document.getElementById('summaryTitle');
+        
+        if (simulationSettingsTitle) simulationSettingsTitle.textContent = locale.simulationSettingsTitle;
+        if (simDaysLabelText) simDaysLabelText.textContent = locale.simDaysLabel;
+        if (simIntensityLabelText) simIntensityLabelText.textContent = locale.simIntensityLabel;
+        if (simTMarketLabelText) simTMarketLabelText.textContent = locale.simTMarketLabel;
+        if (simUseAgentText) simUseAgentText.textContent = locale.simUseAgentText;
+        if (runSimulationBtn) runSimulationBtn.textContent = locale.runSimulationBtn;
+        if (exportCsvBtn) exportCsvBtn.textContent = locale.exportCsvBtn;
+        if (metricsTitle) metricsTitle.textContent = locale.metricsTitle;
+        if (summaryTitle) summaryTitle.textContent = locale.summaryTitle;
+
+        // Update navigation tabs (Оновити навігаційні вкладки)
+        navTabs.forEach((tab, index) => {
+            if (index === 0) {
+                tab.textContent = locale.operationalView;
+            } else if (index === 1) {
+                tab.textContent = locale.simulationView;
+            }
+        });
+
         const selectedData = getSelectedNodeData();
         if (!selectedData) {
             renderDetails(null);
@@ -415,6 +477,9 @@ document.addEventListener('DOMContentLoaded', function() {
             renderDetails(selectedData);
             applyTranslationsToGraph();
             logUI('Graph updated', { nodes: cy_main.nodes().length, edges: cy_main.edges().length });
+            
+            // Update live indices after state update (Оновити live індекси після оновлення стану)
+            await updateLiveIndices();
 
             // Compute basic analytics indices (Обчислити базові індекси аналітики)
             const byType = {};
@@ -545,6 +610,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Refresh history list right away (Оновити історію негайно)
                 await loadAgentHistory();
                 await updateMainGraph();
+                await updateLiveIndices(); // Update indices after agent action (Оновити індекси після дії агента)
                 selectedNodeId = null;
                 renderDetails(null);
             } else {
@@ -602,10 +668,73 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // --- TAB SWITCHING LOGIC (Логіка перемикання вкладок) ---
+    const navTabs = document.querySelectorAll('.nav-tab');
+    const views = document.querySelectorAll('.view-section');
+
+    navTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Remove active from all tabs (Зняти active з усіх вкладок)
+            navTabs.forEach(t => t.classList.remove('active'));
+            // Hide all views (Приховати всі view)
+            views.forEach(v => v.classList.remove('active'));
+
+            // Activate clicked tab (Активувати натиснуту вкладку)
+            tab.classList.add('active');
+            const targetId = tab.getAttribute('data-target');
+            const targetView = document.getElementById(targetId);
+            if (targetView) {
+                targetView.classList.add('active');
+            }
+
+            // Specific actions for views (Специфічні дії для view)
+            if (targetId === 'view-operational' && cy_main) {
+                // Critical for Cytoscape: recalculate dimensions (Критично для Cytoscape: перерахувати розміри)
+                setTimeout(() => {
+                    cy_main.resize();
+                    cy_main.fit();
+                }, 50);
+            }
+        });
+    });
+
+    // --- UPDATE LIVE INDICES (Оновлення live індексів) ---
+    async function updateLiveIndices() {
+        try {
+            const response = await fetch('/api/v1/simulation/metrics/current');
+            if (response.ok) {
+                const metrics = await response.json();
+                const sIndexEl = document.getElementById('liveSIndex');
+                const cIndexEl = document.getElementById('liveCIndex');
+                const aIndexEl = document.getElementById('liveAIndex');
+                
+                if (sIndexEl && metrics.s_index !== undefined) {
+                    sIndexEl.textContent = metrics.s_index.toFixed(3);
+                }
+                if (cIndexEl && metrics.c_index !== undefined) {
+                    cIndexEl.textContent = metrics.c_index.toFixed(3);
+                }
+                if (aIndexEl && metrics.a_index !== undefined) {
+                    aIndexEl.textContent = metrics.a_index.toFixed(3);
+                }
+            }
+        } catch (error) {
+            console.error('Failed to update live indices:', error);
+            // Set fallback values (Встановити резервні значення)
+            const sIndexEl = document.getElementById('liveSIndex');
+            const cIndexEl = document.getElementById('liveCIndex');
+            const aIndexEl = document.getElementById('liveAIndex');
+            if (sIndexEl) sIndexEl.textContent = 'Calc...';
+            if (cIndexEl) cIndexEl.textContent = 'Calc...';
+            if (aIndexEl) aIndexEl.textContent = 'Calc...';
+        }
+    }
+
     (async () => {
         updateStaticText();
         await updateMainGraph();
         applyTranslationsToGraph();
+        await updateLiveIndices(); // Update live indices on load (Оновити live індекси при завантаженні)
         logUI('Interface ready');
         await loadAgentHistory();
     })();
@@ -633,6 +762,407 @@ document.addEventListener('DOMContentLoaded', function() {
                 ? '/docs/videos.uk.html'
                 : '/docs/videos.en.html';
             window.open(path, '_blank');
+        });
+    }
+
+    // Scientific Analytics (Наукова аналітика)
+    let metricsChart = null;
+    const scientificAnalytics = document.getElementById('scientificAnalytics');
+    // Get tabs from simulation view (Отримати вкладки з view симуляції)
+    const simChartsPanel = document.querySelector('.sim-charts');
+    const tabButtons = simChartsPanel ? simChartsPanel.querySelectorAll('.tab-btn') : [];
+    const tabContents = simChartsPanel ? simChartsPanel.querySelectorAll('.tab-content') : [];
+    const runSimulationBtn = document.getElementById('runSimulationBtn');
+    const simulationStatus = document.getElementById('simulationStatus');
+    const metricsChartCanvas = document.getElementById('metricsChart');
+
+    // Tab switching (Перемикання вкладок)
+    if (tabButtons.length > 0) {
+        tabButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetTab = btn.dataset.tab;
+                tabButtons.forEach(b => b.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                const targetContent = document.getElementById(`tab${targetTab.charAt(0).toUpperCase() + targetTab.slice(1)}`);
+                if (targetContent) {
+                    targetContent.classList.add('active');
+                }
+                if (targetTab === 'metrics') {
+                    loadMetricsData();
+                } else if (targetTab === 'logs') {
+                    loadAgentLogs();
+                }
+            });
+        });
+    }
+
+    // Load and display agent logs (Завантажити та відобразити логи агента)
+    async function loadAgentLogs() {
+        try {
+            const response = await fetch('/api/v1/simulation/agent-logs');
+            if (response.ok) {
+                const data = await response.json();
+                const logsContent = document.getElementById('agentLogsContent');
+                if (logsContent) {
+                    if (data.logs && data.logs.length > 0) {
+                        logsContent.textContent = data.logs.join('\n');
+                    } else {
+                        logsContent.textContent = 'No agent logs available. Run a simulation with agent enabled to see logs.';
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load agent logs:', error);
+            const logsContent = document.getElementById('agentLogsContent');
+            if (logsContent) {
+                logsContent.textContent = 'Error loading agent logs: ' + error.message;
+            }
+        }
+    }
+
+    // Save logs to file (Зберегти логи у файл)
+    const saveLogsBtn = document.getElementById('saveLogsBtn');
+    if (saveLogsBtn) {
+        saveLogsBtn.addEventListener('click', () => {
+            const logsContent = document.getElementById('agentLogsContent');
+            if (!logsContent) {
+                return;
+            }
+
+            const logText = logsContent.textContent || logsContent.innerText;
+
+            const trimmedText = (logText || '').trim();
+            const placeholderText = 'No agent logs available. Run a simulation with agent enabled to see logs.';
+            
+            if (!trimmedText || trimmedText === placeholderText) {
+                alert('No logs to save. Run a simulation first.');
+                return;
+            }
+
+            // Create blob and download (Створити blob та завантажити)
+            const blob = new Blob([logText], { type: 'text/plain;charset=utf-8' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            
+            // Generate filename with timestamp (Згенерувати ім'я файлу з часовою міткою)
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+            a.download = `simulation_logs_${timestamp}.txt`;
+            
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            // Show feedback (Показати зворотний зв'язок)
+            if (simulationStatus) {
+                const originalText = simulationStatus.textContent;
+                simulationStatus.textContent = 'Logs saved successfully';
+                simulationStatus.style.color = '#4CAF50';
+                setTimeout(() => {
+                    simulationStatus.textContent = originalText;
+                    simulationStatus.style.color = '';
+                }, 2000);
+            }
+        });
+    }
+
+    // Run simulation (Запустити симуляцію)
+    if (runSimulationBtn) {
+        runSimulationBtn.addEventListener('click', async () => {
+            const days = parseInt(document.getElementById('simDays')?.value || '30');
+            const intensity = document.getElementById('simIntensity')?.value || 'high';
+            const tMarket = parseFloat(document.getElementById('simTMarket')?.value || '30.0');
+            const useAgent = document.getElementById('simUseAgent')?.checked ?? true;
+            const useStreaming = true; // Always use streaming for real-time logs (Завжди використовувати потокову передачу для логів в реальному часі)
+
+            if (simulationStatus) {
+                simulationStatus.textContent = 'Running simulation...';
+                simulationStatus.style.color = '#4CAF50';
+            }
+
+            // Clear logs container (Очистити контейнер логів)
+            const logsContent = document.getElementById('agentLogsContent');
+            if (logsContent) {
+                logsContent.textContent = '';
+            }
+
+            try {
+                runSimulationBtn.disabled = true;
+                
+                if (useStreaming) {
+                    // Use streaming endpoint for real-time logs (Використати потоковий ендпоінт для логів в реальному часі)
+                    await runSimulationWithStreaming(days, intensity, tMarket, useAgent);
+                } else {
+                    // Use regular endpoint (Використати звичайний ендпоінт)
+                    const response = await fetch('/api/v1/simulation/run', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ days, intensity, t_market: tMarket, use_agent: useAgent })
+                    });
+
+                    if (response.ok) {
+                        const metrics = await response.json();
+                        if (simulationStatus) {
+                            simulationStatus.textContent = `Simulation completed: ${metrics.length} data points (${useAgent ? 'with' : 'without'} agent)`;
+                        }
+                        // Load agent logs if agent was used (Завантажити логи агента, якщо агент використовувався)
+                        if (useAgent) {
+                            await loadAgentLogs();
+                        }
+                        // Switch to metrics tab and load data (Перемкнути на вкладку метрик та завантажити дані)
+                        if (tabButtons.length > 1) {
+                            tabButtons[1].click();
+                        }
+                        await loadMetricsData();
+                    } else {
+                        if (simulationStatus) {
+                            simulationStatus.textContent = 'Simulation failed';
+                            simulationStatus.style.color = '#f44336';
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Simulation error:', error);
+                if (simulationStatus) {
+                    simulationStatus.textContent = 'Error: ' + error.message;
+                    simulationStatus.style.color = '#f44336';
+                }
+            } finally {
+                runSimulationBtn.disabled = false;
+            }
+        });
+    }
+
+    // Run simulation with real-time streaming (Запустити симуляцію з потоковою передачею в реальному часі)
+    async function runSimulationWithStreaming(days, intensity, tMarket, useAgent) {
+        // Switch to logs tab to see real-time output (Перемкнути на вкладку логів для перегляду в реальному часі)
+        if (tabButtons.length > 2) {
+            tabButtons[2].click();
+        }
+        
+        const logsContent = document.getElementById('agentLogsContent');
+        if (!logsContent) {
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/v1/simulation/run-stream', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ days, intensity, t_market: tMarket, use_agent: useAgent })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n');
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        try {
+                            const data = JSON.parse(line.slice(6));
+                            if (data.type === 'log') {
+                                // Append log message (Додати повідомлення логу)
+                                logsContent.textContent += data.message + '\n';
+                                // Auto-scroll to bottom (Автоматично прокрутити вниз)
+                                logsContent.scrollTop = logsContent.scrollHeight;
+                            } else if (data.type === 'complete') {
+                                // Simulation completed (Симуляція завершена)
+                                if (simulationStatus) {
+                                    simulationStatus.textContent = `Simulation completed: ${data.metrics_count} data points (${useAgent ? 'with' : 'without'} agent)`;
+                                }
+                                // Load metrics data (Завантажити дані метрик)
+                                await loadMetricsData();
+                                // Optionally switch to metrics tab (Опціонально перемкнути на вкладку метрик)
+                                // if (tabButtons.length > 1) {
+                                //     tabButtons[1].click();
+                                // }
+                            }
+                        } catch (e) {
+                            console.error('Error parsing SSE data:', e);
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Streaming error:', error);
+            if (logsContent) {
+                logsContent.textContent += '\n\nError: ' + error.message;
+            }
+            if (simulationStatus) {
+                simulationStatus.textContent = 'Error: ' + error.message;
+                simulationStatus.style.color = '#f44336';
+            }
+        }
+    }
+
+    // Export CSV (Експортувати CSV)
+    const exportCsvBtn = document.getElementById('exportCsvBtn');
+    if (exportCsvBtn) {
+        exportCsvBtn.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/v1/simulation/export/csv');
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `simulation_results_${new Date().toISOString().slice(0, 10)}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                    if (simulationStatus) {
+                        simulationStatus.textContent = 'CSV exported successfully';
+                        simulationStatus.style.color = '#4CAF50';
+                    }
+                } else {
+                    if (simulationStatus) {
+                        simulationStatus.textContent = 'Export failed';
+                        simulationStatus.style.color = '#f44336';
+                    }
+                }
+            } catch (error) {
+                console.error('Export error:', error);
+                if (simulationStatus) {
+                    simulationStatus.textContent = 'Export error: ' + error.message;
+                    simulationStatus.style.color = '#f44336';
+                }
+            }
+        });
+    }
+
+    // Load and display metrics (Завантажити та відобразити метрики)
+    async function loadMetricsData() {
+        try {
+            const [historyResponse, summaryResponse] = await Promise.all([
+                fetch('/api/v1/simulation/metrics/history'),
+                fetch('/api/v1/simulation/summary')
+            ]);
+
+            if (historyResponse.ok && summaryResponse.ok) {
+                const metrics = await historyResponse.json();
+                const summary = await summaryResponse.json();
+
+                // Render chart (Відобразити графік)
+                renderMetricsChart(metrics);
+
+                // Render summary table (Відобразити таблицю зведення)
+                renderSummaryTable(summary);
+            }
+        } catch (error) {
+            console.error('Failed to load metrics:', error);
+        }
+    }
+
+    // Render metrics chart (Відобразити графік метрик)
+    function renderMetricsChart(metrics) {
+        if (!metricsChartCanvas || !metrics || metrics.length === 0) {
+            return;
+        }
+
+        const ctx = metricsChartCanvas.getContext('2d');
+        const labels = metrics.map((m, i) => `Day ${i + 1}`);
+        const sData = metrics.map(m => m.s_index);
+        const cData = metrics.map(m => m.c_index);
+        const aData = metrics.map(m => m.a_index);
+
+        // Destroy existing chart if exists (Знищити існуючий графік, якщо він є)
+        if (metricsChart) {
+            metricsChart.destroy();
+        }
+
+        metricsChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'S Index (Sustainability)',
+                        data: sData,
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        tension: 0.1
+                    },
+                    {
+                        label: 'C Index (Control)',
+                        data: cData,
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        tension: 0.1
+                    },
+                    {
+                        label: 'A Index (Adaptability)',
+                        data: aData,
+                        borderColor: 'rgb(54, 162, 235)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 1.0
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Scientific Metrics Over Time'
+                    }
+                }
+            }
+        });
+    }
+
+    // Render summary table (Відобразити таблицю зведення)
+    function renderSummaryTable(summary) {
+        const tableBody = document.querySelector('#summaryTableContent tbody');
+        if (!tableBody || !summary) {
+            return;
+        }
+
+        tableBody.innerHTML = '';
+
+        const metrics = [
+            { key: 's_index', label: 'S Index (Sustainability)' },
+            { key: 'c_index', label: 'C Index (Control)' },
+            { key: 'a_index', label: 'A Index (Adaptability)' }
+        ];
+
+        metrics.forEach(metric => {
+            const row = document.createElement('tr');
+            const before = summary.before?.[metric.key] || 0;
+            const after = summary.after?.[metric.key] || 0;
+            const change = summary.improvements?.[metric.key] || 0;
+            const changeClass = change >= 0 ? 'positive' : 'negative';
+
+            row.innerHTML = `
+                <td>${metric.label}</td>
+                <td>${before.toFixed(3)}</td>
+                <td>${after.toFixed(3)}</td>
+                <td class="${changeClass}">${change >= 0 ? '+' : ''}${change.toFixed(3)}</td>
+            `;
+            tableBody.appendChild(row);
         });
     }
 });

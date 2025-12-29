@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Технічний план — dt4research v1.2.0</title>
+    <title>Технічний план — dt4research v1.4.0</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
@@ -12,27 +12,28 @@
         .doc-header{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:48px 0;margin-bottom:24px}
         .card-doc{border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.08)}
         .api-endpoint{background:#eef1f7;padding:6px 10px;border-radius:6px;font-family:"Courier New",monospace}
+        .formula{background:#f8f9fa;padding:12px;border-left:4px solid #667eea;border-radius:4px;font-family:"Courier New",monospace;margin:8px 0}
     </style>
 </head>
 <body>
 <nav class="navbar navbar-light bg-white shadow-sm"><div class="container"><a class="navbar-brand" href="/"><i class="fas fa-brain me-2"></i>dt4research</a></div></nav>
 <header class="doc-header text-center">
     <div class="container">
-        <h1 class="h2 mb-2"><i class="fas fa-screwdriver-wrench me-2"></i>Технічний план (v1.2.0)</h1>
-        <p class="mb-0">Етап 2 — Кабіна менеджера (Діагностика, Пам'ять, Зворотний зв'язок, Аналітика)</p>
+        <h1 class="h2 mb-2"><i class="fas fa-screwdriver-wrench me-2"></i>Технічний план (v1.4.0)</h1>
+        <p class="mb-0">Етап 4 — Наукова симуляція та метрики (S, C, A індекси)</p>
     </div>
 </header>
 <main class="container">
     <section class="card card-doc mb-3"><div class="card-body">
         <h5 class="card-title"><i class="fas fa-circle-info text-primary me-2"></i>Огляд</h5>
-        <p class="mb-2">Бекенд FastAPI + Pydantic; правиловий агент із коефіцієнтами з <code>.env</code>; персистентність на SQLite/SQLModel (готова до PostgreSQL); двомовний UI (EN/UA).</p>
+        <p class="mb-2">Бекенд FastAPI + Pydantic; правиловий агент із коефіцієнтами з <code>.env</code>; персистентність на SQLite/SQLModel (готова до PostgreSQL); двомовний UI (EN/UA); наукова аналітика та симуляція.</p>
         <div class="row g-3">
             <div class="col-md-6"><div class="p-3 bg-light rounded h-100">
                 <strong>Стек</strong>
                 <ul class="mb-0">
                     <li>FastAPI, Uvicorn, Pydantic</li>
                     <li>SQLModel (SQLAlchemy 2), SQLite</li>
-                    <li>Cytoscape.js, Tippy.js</li>
+                    <li>Cytoscape.js, Tippy.js, Chart.js</li>
                     <li>python-dotenv, Pytest</li>
                 </ul>
             </div></div>
@@ -59,6 +60,8 @@ flowchart TD
   D --> E[(SQLite)]
   C --> B
   B --> A
+  F[Simulation] -->|Time Series| G[Analytics]
+  G -->|S, C, A Indices| H[Charts]
         </div>
         <div class="row g-3 mt-2">
             <div class="col-md-6"><img class="img-fluid rounded" src="../plan/ai_agent_runtime.png" alt="runtime"></div>
@@ -88,21 +91,88 @@ erDiagram
     string applied_rules_explanation
     string snapshot_state
   }
+  SimulationMetrics {
+    float s_index
+    float c_index
+    float a_index
+    datetime timestamp
+  }
+        </div>
+    </div></section>
+
+    <section class="card card-doc mb-3"><div class="card-body">
+        <h5 class="card-title"><i class="fas fa-calculator text-info me-2"></i>Наукові метрики (v1.4.0)</h5>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <h6 class="text-primary">Індекс S (Сталість)</h6>
+                <div class="formula">S = (R<sub>eco</sub> + R<sub>soc</sub>) / 2 × (1 - W)</div>
+                <small class="text-muted">
+                    R<sub>eco</sub>: технологічні ресурси<br>
+                    R<sub>soc</sub>: соціальні/культурні ресурси<br>
+                    W: відходи/ентропія<br>
+                    Діапазон: 0.0 - 1.0
+                </small>
+            </div>
+            <div class="col-md-4">
+                <h6 class="text-success">Індекс C (Керованість)</h6>
+                <div class="formula">C = 1 - (N<sub>alerts</sub> / N<sub>ops</sub>)</div>
+                <small class="text-muted">
+                    N<sub>alerts</sub>: кількість інцидентів<br>
+                    N<sub>ops</sub>: загальна кількість операцій<br>
+                    Діапазон: 0.0 - 1.0<br>
+                    C = 1.0 означає ідеальне керування
+                </small>
+            </div>
+            <div class="col-md-4">
+                <h6 class="text-warning">Індекс A (Адаптивність)</h6>
+                <div class="formula">A = T<sub>adapt</sub> / T<sub>market</sub></div>
+                <small class="text-muted">
+                    T<sub>adapt</sub>: час адаптації системи (дні)<br>
+                    T<sub>market</sub>: час змін ринку (дні, за замовчуванням: 30)<br>
+                    A &lt; 1.0: швидша адаптація за ринок
+                </small>
+            </div>
+        </div>
+    </div></section>
+
+    <section class="card card-doc mb-3"><div class="card-body">
+        <h5 class="card-title"><i class="fas fa-play-circle text-danger me-2"></i>Рушій симуляції (v1.4.0)</h5>
+        <p class="mb-2">Автоматична генерація часових рядів даних для наукового аналізу поведінки системи.</p>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <strong>Рівні інтенсивності:</strong>
+                <ul>
+                    <li><strong>Low:</strong> Події кожні 3 дні, прості цілі</li>
+                    <li><strong>Medium:</strong> Події кожні 2 дні, помірна різноманітність</li>
+                    <li><strong>High:</strong> Події кожного дня, різноманітні сценарії</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <strong>API ендпоінти:</strong>
+                <ul class="mb-0">
+                    <li><code class="api-endpoint">POST /api/v1/simulation/run</code></li>
+                    <li><code class="api-endpoint">GET /api/v1/simulation/metrics/current</code></li>
+                    <li><code class="api-endpoint">GET /api/v1/simulation/metrics/history</code></li>
+                    <li><code class="api-endpoint">GET /api/v1/simulation/summary</code></li>
+                </ul>
+            </div>
         </div>
     </div></section>
 
     <section class="card card-doc mb-4"><div class="card-body">
-        <h5 class="card-title"><i class="fas fa-check text-success me-2"></i>Зроблено в 1.2.0</h5>
+        <h5 class="card-title"><i class="fas fa-check text-success me-2"></i>Зроблено в 1.4.0</h5>
         <ul class="mb-2">
-            <li>Пам'ять і зворотний зв'язок у UI: блок історії (10 записів) і тости з поясненнями</li>
-            <li>Скидання системи: <code>POST /api/v1/system-reset</code> очищує стан/історію і перевисіває</li>
-            <li>Базова аналітика: індекси A (Адаптивність) і S (Сталості) у сайдбарі</li>
-            <li>Двомовність (EN/UK) для історії, аналітики, кнопки скидання, confirm/toast</li>
-            <li>Перевірки здоровʼя БД та RabbitMQ із замаскованими обліковими даними</li>
-            <li>Операційні вказівки: дисципліна git зафіксована в README</li>
-            <li>Оновлені документи (API v1.2.0, сторінка з відео)</li>
+            <li><strong>Наукові метрики:</strong> Реалізовано обчислення індексів S (Сталість), C (Керованість), A (Адаптивність) з математичними формулами</li>
+            <li><strong>Рушій симуляції:</strong> Автоматична генерація часових рядів даних з різними рівнями інтенсивності</li>
+            <li><strong>Модуль аналітики:</strong> Функції обчислення метрик та витягування даних зі стану системи (<code>app/analytics.py</code>)</li>
+            <li><strong>Візуалізація:</strong> Нова панель "Наукова аналітика" з графіками (Chart.js) та таблицями порівняння до/після</li>
+            <li><strong>API ендпоінти:</strong> Нові ендпоінти для симуляції та метрик</li>
+            <li><strong>Тестування:</strong> Додані тести для аналітики (<code>tests/test_analytics.py</code>) та симуляції (<code>tests/test_simulation.py</code>)</li>
         </ul>
-        <div class="small text-muted">Попереднє (1.0.0.4): персистентність на SQLite/SQLModel і базова історія.</div>
+        <div class="small text-muted">
+            <strong>Попереднє (1.2.0):</strong> Пам'ять і зворотний зв'язок у UI, скидання системи, базова аналітика, двомовність, health checks.<br>
+            <strong>Попереднє (1.0.0.4):</strong> Персистентність на SQLite/SQLModel і базова історія.
+        </div>
     </div></section>
 </main>
 <script>

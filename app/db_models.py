@@ -32,6 +32,18 @@ class AgentRunRow(SQLModel, table=True):
     snapshot_state: str  # JSON string of SystemState (JSON-рядок стану)
 
 
+class SimulationMetricRow(SQLModel, table=True):
+    """Stores simulation metrics for persistence (Зберігає метрики симуляції для персистентності)."""
+    id: Optional[int] = Field(default=None, primary_key=True)
+    timestamp: datetime = Field(default_factory=datetime.utcnow, index=True)
+    s_index: float = Field(ge=0, le=1, description="Sustainability index (Індекс сталості)")
+    c_index: float = Field(ge=0, le=1, description="Cybernetic Control index (Індекс керованості)")
+    a_index: float = Field(ge=0, description="Adaptability index (Індекс адаптивності)")
+    simulation_run_id: Optional[str] = Field(default=None, index=True, description="Identifier for simulation run (Ідентифікатор запуску симуляції)")
+    use_agent: bool = Field(default=True, description="Whether agent was used in this simulation (Чи використовувався агент у цій симуляції)")
+    day: int = Field(ge=0, description="Simulation day (День симуляції)")
+
+
 
 
 

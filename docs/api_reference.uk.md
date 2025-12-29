@@ -1,4 +1,4 @@
-# dt4research — Довідник API (v1.2.0)
+# dt4research — Довідник API (v1.4.0)
 
 Базовий URL: `http://127.0.0.1:8000`
 

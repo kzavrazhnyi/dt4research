@@ -6,7 +6,7 @@ Reads growth coefficients from environment (.env) with sane defaults (Зчиту
 
 import copy
 import os
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 
 from dotenv import load_dotenv
 from app.models import SystemState, ResourceType
@@ -57,24 +57,33 @@ DEF_STRAT = _get_int_env("RULE_DEFAULT_STRAT", 5)
 DEF_FIN = _get_int_env("RULE_DEFAULT_FIN", 5)
 
 
-def run_mock_analysis(goal: str, current_state: SystemState) -> Tuple[SystemState, Dict[str, int]]:
+def run_mock_analysis(goal: str, current_state: SystemState, capture_logs: bool = False) -> Tuple[SystemState, Dict[str, int], List[str]]:
     """
     Simulate AI agent analysis based on the manager's goal (Симулювати аналіз АІ-агента на основі цілі менеджера).
 
     Args:
         goal: Strategic goal text from the manager (Текст стратегічної цілі менеджера)
         current_state: Current system state (Поточний стан системи)
+        capture_logs: If True, capture log messages instead of printing (Якщо True, зберігати повідомлення логів замість виводу)
 
     Returns:
-        Tuple of (new_state, deltas_by_resource_type) where deltas map resource type label to delta
-        (Кортеж (новий_стан, дельти_за_типом_ресурсу), де дельти — мапа типу ресурсу до зміни)
+        Tuple of (new_state, deltas_by_resource_type, log_messages) where deltas map resource type label to delta
+        (Кортеж (новий_стан, дельти_за_типом_ресурсу, повідомлення_логів), де дельти — мапа типу ресурсу до зміни)
     """
     new_state = copy.deepcopy(current_state)
     deltas_by_type: Dict[ResourceType, int] = {}
-
-    print(f"\n{'='*60}")
-    print(f"🤖 AI Агент аналізує ціль: '{goal}'")
-    print(f"{'='*60}")
+    log_messages: List[str] = []
+    
+    def log(msg: str) -> None:
+        """Log message to console or capture list (Залогувати повідомлення в консоль або зберегти в список)."""
+        if capture_logs:
+            log_messages.append(msg)
+        else:
+            print(msg)
+    
+    log(f"\n{'='*60}")
+    log(f"🤖 AI Агент аналізує ціль: '{goal}'")
+    log(f"{'='*60}")
 
     goal_lower = goal.lower()
 
@@ -82,7 +91,7 @@ def run_mock_analysis(goal: str, current_state: SystemState) -> Tuple[SystemStat
         """Apply resource deltas and log message (Застосувати дельти ресурсів і залогувати повідомлення)."""
         nonlocal deltas_by_type
         deltas_by_type = local_deltas
-        print(message)
+        log(message)
         for r_type, delta in local_deltas.items():
             for resource in new_state.resources:
                 if resource.type == r_type:
@@ -90,10 +99,10 @@ def run_mock_analysis(goal: str, current_state: SystemState) -> Tuple[SystemStat
         human_readable = "; ".join(
             f"{r_type.value} (+{delta})" for r_type, delta in local_deltas.items()
         )
-        print(f"✅ Updated resources: {human_readable}")
+        log(f"✅ Updated resources: {human_readable}")
 
     if "переробк" in goal_lower or "екологі" in goal_lower or "circular" in goal_lower:
-        print("📊 Виявлено ключові слова: Переробка, Екологія")
+        log("📊 Виявлено ключові слова: Переробка, Екологія")
         apply_deltas(
             {
                 ResourceType.TECHNOLOGICAL: ECO_TECH,
@@ -103,7 +112,7 @@ def run_mock_analysis(goal: str, current_state: SystemState) -> Tuple[SystemStat
             "💡 Recommendation: Increase Technological, Educational, Risk resources (Рекомендація: Збільшити Технологічний, Освітній, Ризиковий ресурси)",
         )
     elif "клієнт" in goal_lower or "сервіс" in goal_lower or "клієнтськ" in goal_lower:
-        print("📊 Виявлено ключові слова: Клієнт, Сервіс")
+        log("📊 Виявлено ключові слова: Клієнт, Сервіс")
         apply_deltas(
             {
                 ResourceType.COMMUNICATION: CUST_COMM,
@@ -113,7 +122,7 @@ def run_mock_analysis(goal: str, current_state: SystemState) -> Tuple[SystemStat
             "💡 Recommendation: Increase Communication, Informational, Operational resources (Рекомендація: Збільшити Комунікаційний, Інформаційний, Операційний ресурси)",
         )
     elif "інновац" in goal_lower or "цифров" in goal_lower or "автоматизац" in goal_lower:
-        print("📊 Виявлено ключові слова: Інновація, Цифрова трансформація")
+        log("📊 Виявлено ключові слова: Інновація, Цифрова трансформація")
         apply_deltas(
             {
                 ResourceType.TECHNOLOGICAL: INNOV_TECH,
@@ -123,7 +132,7 @@ def run_mock_analysis(goal: str, current_state: SystemState) -> Tuple[SystemStat
             "💡 Recommendation: Increase Technological, Strategic, Financial resources (Рекомендація: Збільшити Технологічний, Стратегічний, Фінансовий ресурси)",
         )
     elif "партнер" in goal_lower or "екосистем" in goal_lower or "співпрац" in goal_lower:
-        print("📊 Виявлено ключові слова: Партнерство, Екосистема")
+        log("📊 Виявлено ключові слова: Партнерство, Екосистема")
         apply_deltas(
             {
                 ResourceType.ORGANIZATIONAL: PARTNER_ORG,
@@ -132,7 +141,7 @@ def run_mock_analysis(goal: str, current_state: SystemState) -> Tuple[SystemStat
             "💡 Recommendation: Increase Organizational, Communication resources (Рекомендація: Збільшити Організаційний, Комунікаційний ресурси)",
         )
     elif "ризик" in goal_lower or "безпека" in goal_lower or "комплаєнс" in goal_lower:
-        print("📊 Виявлено ключові слова: Ризики, Безпека")
+        log("📊 Виявлено ключові слова: Ризики, Безпека")
         apply_deltas(
             {
                 ResourceType.RISK: RISK_RISK,
@@ -141,7 +150,7 @@ def run_mock_analysis(goal: str, current_state: SystemState) -> Tuple[SystemStat
             "💡 Recommendation: Increase Risk and Operational resources (Рекомендація: Збільшити Ризиковий та Операційний ресурси)",
         )
     elif "освят" in goal_lower or "трен" in goal_lower or "знанн" in goal_lower or "навчан" in goal_lower:
-        print("📊 Виявлено ключові слова: Освіта, Тренінги")
+        log("📊 Виявлено ключові слова: Освіта, Тренінги")
         apply_deltas(
             {
                 ResourceType.EDUCATIONAL: EDU_EDU,
@@ -150,7 +159,7 @@ def run_mock_analysis(goal: str, current_state: SystemState) -> Tuple[SystemStat
             "💡 Recommendation: Increase Educational and Organizational resources (Рекомендація: Збільшити Освітній та Організаційний ресурси)",
         )
     else:
-        print("📊 Ціль не розпізнано чітко - застосовую базові покращення")
+        log("📊 Ціль не розпізнано чітко - застосовую базові покращення")
         apply_deltas(
             {
                 ResourceType.TECHNOLOGICAL: DEF_TECH,
@@ -160,10 +169,10 @@ def run_mock_analysis(goal: str, current_state: SystemState) -> Tuple[SystemStat
             "💡 Recommendation: Even improvement of core resources (Рекомендація: Рівномірне підвищення основних ресурсів)",
         )
 
-    print(f"{'='*60}\n")
+    log(f"{'='*60}\n")
 
     deltas_serialized: Dict[str, int] = {r_type.value: delta for r_type, delta in deltas_by_type.items()}
-    return new_state, deltas_serialized
+    return new_state, deltas_serialized, log_messages if capture_logs else []
 
 
 

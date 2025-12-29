@@ -3,13 +3,13 @@ Repository layer for persistence operations (Репозиторій для оп�
 """
 
 import json
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 from sqlmodel import select, delete
 
 from app.db import get_session, create_db_and_tables
-from app.db_models import ComponentRow, ResourceRow, AgentRunRow
-from app.models import SystemState, KeyComponent, Resource
+from app.db_models import ComponentRow, ResourceRow, AgentRunRow, SimulationMetricRow
+from app.models import SystemState, KeyComponent, Resource, SimulationMetrics
 from app.initial_state import INITIAL_STATE
 
 
@@ -100,8 +100,73 @@ def clear_state_and_runs() -> None:
     """Clear components, resources, and agent runs (Очистити компоненти, ресурси та запуски агента)."""
     with get_session() as session:
         # Delete in dependency-safe order (Видалення у безпечному порядку залежностей)
+        session.exec(delete(SimulationMetricRow))
         session.exec(delete(AgentRunRow))
         session.exec(delete(ResourceRow))
         session.exec(delete(ComponentRow))
         session.commit()
+
+
+def save_simulation_metric(
+    metric: SimulationMetrics,
+    simulation_run_id: str,
+    use_agent: bool,
+    day: int
+) -> int:
+    """Save simulation metric to database (Зберегти метрику симуляції в базу даних)."""
+    with get_session() as session:
+        row = SimulationMetricRow(
+            timestamp=metric.timestamp,
+            s_index=metric.s_index,
+            c_index=metric.c_index,
+            a_index=metric.a_index,
+            simulation_run_id=simulation_run_id,
+            use_agent=use_agent,
+            day=day
+        )
+        session.add(row)
+        session.commit()
+        session.refresh(row)
+        return int(row.id)  # type: ignore
+
+
+def get_simulation_metrics_by_run_id(simulation_run_id: str) -> List[SimulationMetrics]:
+    """Get all metrics for a specific simulation run (Отримати всі метрики для конкретного запуску симуляції)."""
+    with get_session() as session:
+        rows = session.exec(
+            select(SimulationMetricRow)
+            .where(SimulationMetricRow.simulation_run_id == simulation_run_id)
+            .order_by(SimulationMetricRow.day)
+        ).all()
+        
+        return [
+            SimulationMetrics(
+                s_index=row.s_index,
+                c_index=row.c_index,
+                a_index=row.a_index,
+                timestamp=row.timestamp
+            )
+            for row in rows
+        ]
+
+
+def get_latest_simulation_run_id() -> Optional[str]:
+    """Get the latest simulation run ID (Отримати ID останнього запуску симуляції)."""
+    with get_session() as session:
+        latest = session.exec(
+            select(SimulationMetricRow)
+            .order_by(SimulationMetricRow.timestamp.desc())
+            .limit(1)
+        ).first()
+        return latest.simulation_run_id if latest else None
+
+
+def get_all_simulation_metrics(limit: int = 1000) -> List[SimulationMetricRow]:
+    """Get all simulation metrics (Отримати всі метрики симуляції)."""
+    with get_session() as session:
+        return session.exec(
+            select(SimulationMetricRow)
+            .order_by(SimulationMetricRow.timestamp.desc())
+            .limit(limit)
+        ).all()
 

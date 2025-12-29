@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css" />
     <script src="https://unpkg.com/tippy.js@6"></script>
     <script src="https://unpkg.com/cytoscape-popper@2.0.0/cytoscape-popper.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="/static/app.js" defer></script>
 </head>
 <body>
@@ -33,43 +34,144 @@
                         <button id="btnApiRef" class="link-btn" type="button">API</button>
                         <button id="btnVideos" class="link-btn" type="button">Videos</button>
                         <a id="btnSettings" class="link-btn" href="/settings" style="text-decoration:none; display:inline-block;">Settings</a>
+                        <a id="btnPresentations" class="link-btn" href="/presentations" style="text-decoration:none; display:inline-block;">Presentations</a>
                     </div>
                 </div>
             </div>
         </header>
 
-        <div class="layout">
-            <aside class="sidebar">
-                <div class="controls" id="controls">
-                    <div class="control-panel">
-                        <label for="goalInput" id="goalLabel">Strategic goal:</label>
-                        <input type="text" id="goalInput" placeholder="Enter strategic goal (e.g., 'Increase ecological efficiency')" />
-                        <button id="applyButton">Run Agent</button>
-                        <button id="resetButton" class="reset-btn">Скинути стан</button>
+        <!-- Main Navigation (Головна навігація) -->
+        <nav class="main-nav">
+            <button class="nav-tab active" data-target="view-operational">
+                🕹️ Операційне управління
+            </button>
+            <button class="nav-tab" data-target="view-simulation">
+                🔬 Наукова симуляція
+            </button>
+        </nav>
+
+        <div class="container-views">
+            <!-- Operational View (Операційне управління) -->
+            <div id="view-operational" class="view-section active">
+                <div class="dashboard-grid">
+                    <aside class="dash-sidebar-left">
+                        <div class="panel control-panel">
+                            <h3 id="controlPanelTitle">Стратегічне управління</h3>
+                            <label for="goalInput" id="goalLabel">Стратегічна ціль:</label>
+                            <input type="text" id="goalInput" placeholder="Наприклад: 'Збільшити екологічність'" />
+                            <div class="btn-group">
+                                <button id="applyButton" class="primary-btn">Запустити Агента</button>
+                                <button id="resetButton" class="secondary-btn">Скинути</button>
+                            </div>
+                        </div>
+
+                        <div class="panel history-panel">
+                            <h3 id="historyTitle">Історія запусків</h3>
+                            <ul id="historyList" class="history-list"></ul>
+                        </div>
+                    </aside>
+
+                    <main class="dash-main">
+                        <div id="cy-graph-main" class="cy-graph full-height"></div>
+                    </main>
+
+                    <aside class="dash-sidebar-right">
+                        <div class="panel indices-panel">
+                            <h3 id="indicesTitle">Ключові Індекси</h3>
+                            <div class="indices-grid">
+                                <div class="index-card">
+                                    <span class="lbl">S</span>
+                                    <span class="val" id="liveSIndex">-</span>
+                                </div>
+                                <div class="index-card">
+                                    <span class="lbl">C</span>
+                                    <span class="val" id="liveCIndex">-</span>
+                                </div>
+                                <div class="index-card">
+                                    <span class="lbl">A</span>
+                                    <span class="val" id="liveAIndex">-</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel details-panel">
+                            <h3 id="detailsTitle">Деталі вузла</h3>
+                            <div id="detailsContent" class="details-content">
+                                <p class="placeholder" id="detailsPlaceholder">Клікніть на вузол графу...</p>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+            </div>
+
+            <!-- Simulation View (Наукова симуляція) -->
+            <div id="view-simulation" class="view-section">
+                <div class="simulation-layout">
+                    <div class="sim-controls panel">
+                        <h3 id="simulationSettingsTitle">Налаштування експерименту</h3>
+                        <div class="form-row">
+                            <label id="simDaysLabel">
+                                <span id="simDaysLabelText">Тривалість (днів):</span>
+                                <input type="number" id="simDays" value="30" min="1" max="365">
+                            </label>
+                            <label id="simIntensityLabel">
+                                <span id="simIntensityLabelText">Інтенсивність:</span>
+                                <select id="simIntensity">
+                                    <option value="low">Low</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="high" selected>High</option>
+                                </select>
+                            </label>
+                        </div>
+                        <div class="form-row">
+                            <label id="simTMarketLabel">
+                                <span id="simTMarketLabelText">T_market (днів):</span>
+                                <input type="number" id="simTMarket" value="30.0" min="1" step="0.1">
+                            </label>
+                        </div>
+                        <label class="checkbox-label" id="simUseAgentLabel">
+                            <input type="checkbox" id="simUseAgent" checked>
+                            <span id="simUseAgentText">Активувати AI Агента (Експериментальна група)</span>
+                        </label>
+                        <div class="btn-group">
+                            <button id="runSimulationBtn" class="primary-btn">Запустити симуляцію</button>
+                            <button id="exportCsvBtn" class="secondary-btn">Експорт CSV</button>
+                        </div>
+                        <div id="simulationStatus"></div>
+                    </div>
+
+                    <div class="sim-charts panel">
+                        <div class="scientific-tabs">
+                            <button class="tab-btn active" data-tab="metrics">Metrics</button>
+                            <button class="tab-btn" data-tab="logs">Agent Logs</button>
+                        </div>
+                        <div class="tab-content active" id="tabMetrics">
+                            <h4 id="metricsTitle">Динаміка показників (S, C, A)</h4>
+                            <div class="chart-wrapper">
+                                <canvas id="metricsChart"></canvas>
+                            </div>
+                            <div class="summary-table" id="summaryTable">
+                                <h5 id="summaryTitle">Результати (Before vs After)</h5>
+                                <table id="summaryTableContent" class="data-table">
+                                    <thead>
+                                        <tr><th>Metric</th><th>Before</th><th>After</th><th>Change</th></tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="tab-content" id="tabLogs">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <h4 id="logsTitle" style="margin: 0;">AI Agent Logs</h4>
+                                <button id="saveLogsBtn" class="save-logs-btn">Save Logs</button>
+                            </div>
+                            <div class="agent-logs-container">
+                                <div id="agentLogsContent" class="agent-logs-content"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                <div class="details">
-                    <h3 id="detailsTitle">Details Panel</h3>
-                    <div id="detailsContent" class="details-content">
-                        <p id="detailsPlaceholder">Click a graph node to see details.</p>
-                    </div>
-                </div>
-                <div class="history">
-                    <h3 id="historyTitle"></h3>
-                    <ul id="historyList"></ul>
-                </div>
-                <div class="analytics">
-                    <h3 id="analyticsTitle"></h3>
-                    <div id="analyticsContent">...</div>
-                </div>
-            </aside>
-
-            <main class="main">
-                <div class="graphs-container">
-                    <div id="cy-graph-main" class="cy-graph"></div>
-                </div>
-            </main>
+            </div>
         </div>
     </div>
 </body>
