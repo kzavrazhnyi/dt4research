@@ -2,6 +2,9 @@
 
 PDF: Smart data with Cursor AI / Розумні дані з Cursor AI — [Завантажити](/plan/Smart%20data%20with%20Cursor%20AI.%20Розумні%20дані%20з%20Cursor%20AI.pdf)
 
+- (dt4research 1.4.0) Smart data with Cursor AI / Розумні дані з Cursor AI
+  - YouTube: https://www.youtube.com/watch?v=QSbPo1-JEkQ
+
 - (dt4research 1.2.0) Smart data with Cursor AI / Розумні дані з Cursor AI
   - YouTube: https://www.youtube.com/watch?v=mNUwFqOXUrs
 

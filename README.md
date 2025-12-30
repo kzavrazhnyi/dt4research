@@ -138,6 +138,7 @@ Run tests from `venv`:
 
 -### Version Video Presentations (Newest first)
 PDF: Smart data with Cursor AI — [Download](/plan/Smart%20data%20with%20Cursor%20AI.%20Розумні%20дані%20з%20Cursor%20AI.pdf)
+- dt4research 1.4.0 — Smart data with Cursor AI / Розумні дані з Cursor AI: [YouTube](https://www.youtube.com/watch?v=QSbPo1-JEkQ)
 - dt4research 1.1.0 — Smart data with Cursor AI: [YouTube](https://www.youtube.com/watch?v=DL6YPSd6ppk)
 - dt4research 1.0.0.4 — Smart data with Cursor AI and management mechanisms: [YouTube](https://www.youtube.com/watch?v=z7zIV4yAKOw)
 - dt4research 1.0.0.3 — Smart data with Cursor AI and management mechanisms: [YouTube](https://www.youtube.com/watch?v=mZISM3IhgOw)
@@ -275,6 +276,7 @@ dt4research/
 
 ### Відеопрезентації версій (Найновіші спочатку)
 PDF: Smart data with Cursor AI / Розумні дані з Cursor AI — [Завантажити](/plan/Smart%20data%20with%20Cursor%20AI.%20Розумні%20дані%20з%20Cursor%20AI.pdf)
+- (dt4research 1.4.0) Smart data with Cursor AI / Розумні дані з Cursor AI: [YouTube](https://www.youtube.com/watch?v=QSbPo1-JEkQ)
 - (dt4research 1.1.0) Smart data with Cursor AI / Розумні дані з Cursor AI: [YouTube](https://www.youtube.com/watch?v=DL6YPSd6ppk)
 - (dt4research 1.0.0.4) Розумні дані з Cursor AI та формування управлінських механізмів цифрової трансформації підприємств: [YouTube](https://www.youtube.com/watch?v=z7zIV4yAKOw)
 - (dt4research 1.0.0.3) Розумні дані з Cursor AI та формування управлінських механізмів цифрової трансформації підприємств: [YouTube](https://www.youtube.com/watch?v=mZISM3IhgOw)
